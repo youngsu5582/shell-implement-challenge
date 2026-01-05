@@ -26,8 +26,23 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
+        // Target JDK 24 for compilation.
         languageVersion = JavaLanguageVersion.of(24)
     }
+}
+
+// Ensure Kotlin compilation also targets the same JDK.
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(24))
+    }
+}
+
+// Run the app with the same toolchain version to avoid mismatches.
+tasks.withType<JavaExec>().configureEach {
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(24))
+    })
 }
 
 application {
