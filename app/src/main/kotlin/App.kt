@@ -3,6 +3,7 @@ fun main() {
     while (true) {
         print("$ ")
         val command = readlnOrNull() ?: return
+        if (command == "exit") break
         println("$command: command not found")
     }
 }
