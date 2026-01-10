@@ -90,7 +90,8 @@ class ShellApplication(
         CustomLogger.debug("${processCommand.command} 명령어의 경로를 찾았습니다. $path")
 
         val builder = ProcessBuilder(processCommand.command, *processCommand.args.toTypedArray())
-            .directory(path.parent.toFile())
+            // 있으면 실행한 현재 디렉토리가 아닌, 명령어를 찾은 디렉토리로 이동해서 실행함
+            // .directory(path.parent.toFile())
             .redirectErrorStream(true)
 
         builder.environment()["PATH"] = path.parent.toString()
