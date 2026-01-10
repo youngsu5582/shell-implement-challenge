@@ -58,4 +58,7 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+
+    val testResourcesPath = "${projectDir}/src/test/resources"
+    environment("PATH", "${System.getenv("PATH")}:$testResourcesPath")
 }

@@ -92,3 +92,13 @@ private fun executeIfBuiltInCommand(processCommand: ProcessCommand) {
 여전히 로직이 조금 마음에 안들긴 하지만...
 
 - 불필요한 ShellCommand 확인 (ProcessCommand 를 만들때, Built-In 인지도 알 수 있을것만 같음)
+
+---
+
+## Stream 으로 변환
+
+기존, `println` 과 `readLine` 구문을 `InputStream`, `OutputStream` 으로 변환했다.
+테스트 할때 용이하게 하기 위해서다.
+
+- 단계별로, 요구사항이 심화되고 있는데 현재, 테스트가 누락되어서 코드 수정중 변경사항으로 실패함
+- TDD 및 제출전 테스트를 보장하기 위해서

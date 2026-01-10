@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# 인자 개수 (프로그램 이름 포함)
+arg_count=$(($# + 1))
+echo "Program was passed $arg_count args (including program name)."
+
+# 프로그램 이름 (경로 없이 파일명만)
+echo "Arg #0 (program name): $0"
+
+# 나머지 인자들
+index=1
+for arg in "$@"; do
+    echo "Arg #$index: $arg"
+    ((index++))
+done
+
+# Program Signature (고정값 또는 랜덤)
+echo "Program Signature: 1234567890"

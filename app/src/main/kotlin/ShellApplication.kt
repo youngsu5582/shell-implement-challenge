@@ -1,0 +1,138 @@
+import java.io.InputStream
+import java.io.OutputStream
+import java.nio.file.Path
+import java.util.concurrent.TimeUnit
+import kotlin.io.path.*
+
+
+class ShellApplication(
+    inputStream: InputStream = System.`in`,
+    outputStream: OutputStream = System.out,
+    private val pathList: List<String>
+) {
+    private val reader = inputStream.bufferedReader()
+    private val writer = outputStream.bufferedWriter()
+
+    fun start() {
+        while (true) {
+            print("$ ")
+            val line = readLine()
+
+            val processCommand = ProcessCommand.from(line)
+            val executionResult = executeIfBuiltInCommand(processCommand)
+            when (executionResult) {
+                CommandExecutionResult.EXIT -> return
+                CommandExecutionResult.BUILT_IN_EXECUTED -> continue
+                CommandExecutionResult.NOT_BUILT_IN -> {
+                    CustomLogger.debug("Built-In 명령어로 실행했습니다. 명령어: $processCommand")
+                    val result = executeShellCommand(processCommand)
+                    CustomLogger.debug("명령어 실행결과: $result")
+                }
+            }
+        }
+    }
+
+    private fun readLine() = reader.readLine()
+    private fun print(message: String) {
+        writer.write(message)
+        writer.flush()
+    }
+
+    private fun println(message: String) {
+        writer.write(message)
+        writer.newLine()
+        writer.flush()
+    }
+
+    /**
+     * Built In 커맨드이고,
+     * 함수가 제대로 실행이 되었다면 true 를 리턴
+     * 그렇지 않다면, false 를 리턴
+     */
+    private fun executeIfBuiltInCommand(processCommand: ProcessCommand): CommandExecutionResult {
+        val shellBuiltInCommand =
+            ShellBuiltInCommand.from(processCommand.command) ?: return CommandExecutionResult.NOT_BUILT_IN
+
+        when (shellBuiltInCommand) {
+            ShellBuiltInCommand.EXIT -> return CommandExecutionResult.EXIT
+            ShellBuiltInCommand.ECHO -> {
+                println(processCommand.argsToLine())
+                return CommandExecutionResult.BUILT_IN_EXECUTED
+            }
+
+            ShellBuiltInCommand.TYPE -> {
+                val args = processCommand.args[0]
+                val nextCommand = ShellBuiltInCommand.from(args)
+
+                if (nextCommand?.type == ShellCommandType.BUILT_IN) {
+                    println("${nextCommand.value} is a shell builtin")
+                    return CommandExecutionResult.BUILT_IN_EXECUTED
+                }
+
+                val result = findExecutable(args)
+
+                if (result != null) {
+                    println("$args is ${result.pathString}")
+                } else {
+                    println("$args: not found")
+                }
+                return CommandExecutionResult.BUILT_IN_EXECUTED
+            }
+        }
+    }
+
+    private fun executeShellCommand(processCommand: ProcessCommand): Boolean {
+        val path = findExecutable(processCommand.command)
+        if (path == null) {
+            println("${processCommand.command}: not found")
+            return false
+        }
+        CustomLogger.debug("${processCommand.command} 명령어의 경로를 찾았습니다. $path")
+
+        val builder = ProcessBuilder(processCommand.command, *processCommand.args.toTypedArray())
+            .directory(path.parent.toFile())
+            .redirectErrorStream(true)
+
+        builder.environment()["PATH"] = path.parent.toString()
+
+        val process = builder.start()
+
+        // 프로세스 출력 → 우리 outputStream으로 복사
+
+        process.inputStream.bufferedReader().forEachLine { line ->
+            println(line)
+        }
+
+        return process
+            .waitFor(1, TimeUnit.MINUTES)
+    }
+
+
+    private fun findExecutable(command: String): Path? {
+        for (path in pathList) {
+            val path = Path(path)
+            val found = recursiveSearch(path, command)
+            CustomLogger.debug("$path 에서 검색결과: $found(실행권환: ${found?.isExecutable()})")
+            if (found != null && found.isExecutable()) {
+                return found
+            }
+        }
+        return null
+    }
+
+    private fun recursiveSearch(path: Path, to: String): Path? {
+        try {
+            val entries = path.listDirectoryEntries()
+            for (entry in entries) {
+                if (entry.isDirectory()) {
+                    val recursiveFound = recursiveSearch(entry, to)
+                    if (recursiveFound != null) return recursiveFound
+                }
+                if (entry.name == to) return entry.toAbsolutePath()
+            }
+        } catch (e: Exception) {
+            return null
+        }
+        return null
+    }
+}

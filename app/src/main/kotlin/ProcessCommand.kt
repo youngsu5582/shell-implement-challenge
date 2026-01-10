@@ -3,7 +3,6 @@ data class ProcessCommand(
     val args: List<String>
 ) {
     companion object {
-
         fun from(line: String): ProcessCommand {
             val commandLine = parseCommand(line)
             if (commandLine.size == 1) {
