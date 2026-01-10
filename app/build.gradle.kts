@@ -21,6 +21,12 @@ repositories {
 }
 
 dependencies {
+    // Kotlin test library
+    testImplementation(kotlin("test"))
+
+    // JUnit Jupiter for running tests
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -48,4 +54,8 @@ tasks.withType<JavaExec>().configureEach {
 application {
     // Define the main class for the application.
     mainClass.set("AppKt")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
