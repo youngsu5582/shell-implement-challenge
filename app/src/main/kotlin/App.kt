@@ -1,11 +1,5 @@
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.io.path.Path
-import kotlin.io.path.absolute
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.isDirectory
 import kotlin.io.path.isExecutable
 import kotlin.io.path.listDirectoryEntries
@@ -17,34 +11,43 @@ object Constant {
 }
 
 fun main() {
-    // TODO: Uncomment the code below to pass the first stage
     while (true) {
         print("$ ")
         val line = readlnOrNull() ?: return
-        if (line.startsWith("exit")) break
 
-        val commands = parseCommand(line)
-        when (val command = ShellCommand.from(commands[0])) {
-            ShellCommand.EXIT -> return
-            ShellCommand.ECHO -> println(commands.subList(1, commands.size).joinToString(" "))
-            ShellCommand.TYPE -> {
-                // type ls
-                // ls
-                val nextCommand = commands[1]
-                if (ShellCommand.from(nextCommand).type == ShellCommandType.BUILT_IN) {
-                    println("$nextCommand is a shell builtin")
-                    continue
-                }
-                val result = findExecutable(nextCommand)
-                if (result != null) {
-                    println("$nextCommand is ${result.pathString}")
-                    continue
-                } else {
-                    println("${commands.subList(1, commands.size).joinToString(" ")}: not found")
-                }
+        val processCommand = ProcessCommand.from(line)
+        executeIfBuiltInCommand(processCommand)
+
+    }
+}
+
+private fun executeIfBuiltInCommand(processCommand: ProcessCommand) {
+    val shellBuiltInCommand = ShellBuiltInCommand.from(processCommand.command) ?: return
+
+    when (shellBuiltInCommand) {
+        ShellBuiltInCommand.EXIT -> return
+        ShellBuiltInCommand.ECHO -> println(processCommand.argsToLine())
+        ShellBuiltInCommand.TYPE -> {
+            val args = processCommand.args[0]
+            val nextCommand = ShellBuiltInCommand.from(args)
+
+            if (nextCommand == null) {
+                println("$args: not found")
+                return
             }
 
-            else -> println("$line: command not found")
+            if (nextCommand.type == ShellCommandType.BUILT_IN) {
+                println("$nextCommand is a shell builtin")
+                return
+            }
+            val result = findExecutable(args)
+
+            if (result != null) {
+                println("$nextCommand is ${result.pathString}")
+                return
+            } else {
+                println("$args: not found")
+            }
         }
     }
 }
@@ -73,26 +76,4 @@ private fun recursiveSearch(path: Path, to: String): Path? {
         return null
     }
     return null
-}
-
-private fun parseCommand(line: String): List<String> = line.split(" ")
-
-enum class ShellCommand(val value: String, val type: ShellCommandType) {
-    ECHO("echo", ShellCommandType.BUILT_IN),
-    EXIT("exit", ShellCommandType.BUILT_IN),
-    TYPE("type", ShellCommandType.BUILT_IN),
-    LS("ls", ShellCommandType.EXECUTABLE),
-    NONE("none", ShellCommandType.EXECUTABLE);
-
-    companion object {
-        fun contains(value: String): Boolean =
-            entries.any { entry -> entry.value == value }
-
-        fun from(value: String): ShellCommand = entries.firstOrNull { it.value == value } ?: NONE
-    }
-}
-
-enum class ShellCommandType {
-    BUILT_IN,
-    EXECUTABLE
 }
