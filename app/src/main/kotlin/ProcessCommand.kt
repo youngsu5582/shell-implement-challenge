@@ -15,4 +15,6 @@ data class ProcessCommand(
     }
 
     fun argsToLine(): String = args.joinToString(" ")
+    // cd: /does_not_exist: No such file or directory
+    fun formatToLine(): String = "$command: ${argsToLine()}:"
 }

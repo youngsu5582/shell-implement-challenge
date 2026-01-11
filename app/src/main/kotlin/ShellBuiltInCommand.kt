@@ -3,6 +3,7 @@ enum class ShellBuiltInCommand(val value: String, val type: ShellCommandType) {
     EXIT("exit", ShellCommandType.BUILT_IN),
     TYPE("type", ShellCommandType.BUILT_IN),
     PWD("pwd", ShellCommandType.BUILT_IN),
+    CD("cd", ShellCommandType.BUILT_IN),
     ;
 
     companion object {

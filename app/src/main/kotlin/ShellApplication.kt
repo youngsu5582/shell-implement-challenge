@@ -1,3 +1,6 @@
+import Constant.HOME_DIRECTORY_PROPERTY
+import Constant.USER_DIRECTORY_PROPERTY
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
@@ -59,12 +62,33 @@ class ShellApplication(
             ShellBuiltInCommand.EXIT -> return CommandExecutionResult.EXIT
             ShellBuiltInCommand.ECHO -> {
                 println(processCommand.argsToLine())
-                return CommandExecutionResult.BUILT_IN_EXECUTED
             }
 
             ShellBuiltInCommand.PWD -> {
-                println(Paths.get("").toAbsolutePath().toString())
-                return CommandExecutionResult.BUILT_IN_EXECUTED
+                println(Paths.get(System.getProperty(USER_DIRECTORY_PROPERTY)).toAbsolutePath().toString())
+            }
+
+            ShellBuiltInCommand.CD -> {
+                CustomLogger.debug("현재 디렉토리: ${System.getProperty(USER_DIRECTORY_PROPERTY)}")
+                val currentDirectory = Paths.get(System.getProperty(USER_DIRECTORY_PROPERTY)).toAbsolutePath()
+
+                if (processCommand.argsToLine() == Constant.HOME_DIRECTORY_SYMBOL) {
+                    CustomLogger.debug("홈 디렉토리로 이동합니다. 디렉토리: ${System.getProperty(HOME_DIRECTORY_PROPERTY)}")
+                    val homeDirectory = System.getProperty(HOME_DIRECTORY_PROPERTY)
+                    System.setProperty(USER_DIRECTORY_PROPERTY, Paths.get(homeDirectory).toAbsolutePath().toString())
+                    return CommandExecutionResult.BUILT_IN_EXECUTED
+                }
+
+                val toDirectory = currentDirectory.resolve(processCommand.argsToLine()).normalize()
+                CustomLogger.debug("이동할 디렉토리. 디렉토리: $toDirectory")
+                try {
+                    if (!Files.exists(toDirectory) || !Files.isDirectory(toDirectory)) {
+                        throw IOException("Not a directory: $toDirectory")
+                    }
+                    System.setProperty(USER_DIRECTORY_PROPERTY, toDirectory.toString())
+                } catch (e: IOException) {
+                    println("${processCommand.formatToLine()} No such file or directory")
+                }
             }
 
             ShellBuiltInCommand.TYPE -> {
@@ -83,9 +107,9 @@ class ShellApplication(
                 } else {
                     println("$args: not found")
                 }
-                return CommandExecutionResult.BUILT_IN_EXECUTED
             }
         }
+        return CommandExecutionResult.BUILT_IN_EXECUTED
     }
 
     private fun executeShellCommand(processCommand: ProcessCommand): Boolean {

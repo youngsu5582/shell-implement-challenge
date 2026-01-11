@@ -1,5 +1,8 @@
 object Constant {
     const val PATH = "PATH"
+    const val HOME_DIRECTORY_SYMBOL = "~"
+    const val HOME_DIRECTORY_PROPERTY = "user.home"
+    const val USER_DIRECTORY_PROPERTY = "user.dir"
 }
 
 fun main() {

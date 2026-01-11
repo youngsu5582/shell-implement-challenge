@@ -107,6 +107,55 @@ class IntegrationTests {
         }
     }
 
+    @Nested
+    inner class NavigationTests {
+
+        @Test
+        fun `pwd 는 현재 경로를 반환하다`() {
+            val command = buildCommand {
+                appendLine("pwd")
+            }
+            val result = execute(command)
+            assertTrue { result.contains("codecrafters-shell-kotlin/app") }
+        }
+
+        @Test
+        fun `cd 는 입력한 디렉토리로 이동한다`() {
+            val command = buildCommand {
+                appendLine("cd directory")
+                appendLine("pwd")
+            }
+
+            val result = execute(command)
+            assertTrue { result.contains("codecrafters-shell-kotlin/app/directory") }
+        }
+
+        @Test
+        fun `cd ~ 는 홈 디렉토리로 이동한다`() {
+            val command = buildCommand {
+                appendLine("cd ~")
+                appendLine("pwd")
+            }
+            System.setProperty(Constant.HOME_DIRECTORY_PROPERTY, System.getProperty(Constant.USER_DIRECTORY_PROPERTY) + "/directory/home-directory")
+
+            val result = execute(command)
+            assertTrue { result.contains("codecrafters-shell-kotlin/app/directory/home-directory") }
+        }
+
+        @Test
+        fun `cd 는 상위 디렉토리로 이동한다`() {
+            val command = buildCommand {
+                appendLine("cd directory")
+                appendLine("cd inner-directory")
+                appendLine("cd ../")
+                appendLine("pwd")
+            }
+
+            val result = execute(command)
+            assertTrue { result.contains("codecrafters-shell-kotlin/app/directory") }
+        }
+    }
+
 
     private fun execute(command: String, pathList: List<String> = emptyList()): String {
         val input = ByteArrayInputStream(command.toByteArray())
