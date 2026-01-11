@@ -73,8 +73,8 @@ class ShellApplication(
                 val currentDirectory = Paths.get(System.getProperty(USER_DIRECTORY_PROPERTY)).toAbsolutePath()
 
                 if (processCommand.argsToLine() == Constant.HOME_DIRECTORY_SYMBOL) {
-                    CustomLogger.debug("홈 디렉토리로 이동합니다. 디렉토리: ${System.getProperty(HOME_DIRECTORY_PROPERTY)}")
-                    val homeDirectory = System.getProperty(HOME_DIRECTORY_PROPERTY)
+                    CustomLogger.debug("홈 디렉토리로 이동합니다. 디렉토리: ${System.getenv(HOME_DIRECTORY_PROPERTY)}")
+                    val homeDirectory = System.getenv(HOME_DIRECTORY_PROPERTY)
                     System.setProperty(USER_DIRECTORY_PROPERTY, Paths.get(homeDirectory).toAbsolutePath().toString())
                     return CommandExecutionResult.BUILT_IN_EXECUTED
                 }
