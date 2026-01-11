@@ -1,7 +1,9 @@
 enum class ShellBuiltInCommand(val value: String, val type: ShellCommandType) {
     ECHO("echo", ShellCommandType.BUILT_IN),
     EXIT("exit", ShellCommandType.BUILT_IN),
-    TYPE("type", ShellCommandType.BUILT_IN);
+    TYPE("type", ShellCommandType.BUILT_IN),
+    PWD("pwd", ShellCommandType.BUILT_IN),
+    ;
 
     companion object {
         fun contains(value: String): Boolean =

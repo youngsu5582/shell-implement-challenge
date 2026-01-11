@@ -1,5 +1,9 @@
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -19,15 +23,16 @@ class IntegrationTests {
             assertTrue { result.contains("$") }
         }
 
-        @Test
-        fun `type 명령어는 존재하는 경로를 반환해준다`() {
-            val command = buildCommand {
-                appendLine("type echo")
+        @ParameterizedTest
+        @EnumSource(value = ShellBuiltInCommand::class)
+        fun `type 명령어는 Built-In 명령어면 Built-In 이라고 출력해준다`(command: ShellBuiltInCommand) {
+            val request = buildCommand {
+                appendLine("type ${command.value}")
             }
 
-            val result = execute(command)
+            val result = execute(request)
 
-            assertTrue { result.contains("echo is a shell builtin") }
+            assertTrue { result.contains("${command.value} is a shell builtin") }
         }
 
         @Test

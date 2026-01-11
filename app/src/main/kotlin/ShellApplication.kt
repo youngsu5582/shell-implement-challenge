@@ -1,6 +1,8 @@
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.*
 
@@ -57,6 +59,11 @@ class ShellApplication(
             ShellBuiltInCommand.EXIT -> return CommandExecutionResult.EXIT
             ShellBuiltInCommand.ECHO -> {
                 println(processCommand.argsToLine())
+                return CommandExecutionResult.BUILT_IN_EXECUTED
+            }
+
+            ShellBuiltInCommand.PWD -> {
+                println(Paths.get("").toAbsolutePath().toString())
                 return CommandExecutionResult.BUILT_IN_EXECUTED
             }
 
