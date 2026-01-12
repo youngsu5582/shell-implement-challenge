@@ -1,5 +1,8 @@
+import Constant.USER_DIRECTORY_PROPERTY
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
@@ -118,6 +121,21 @@ class IntegrationTests {
     @Nested
     inner class NavigationTests {
 
+        private lateinit var originalUserDir: String
+        private lateinit var originalHomeDir: String
+
+        @BeforeEach
+        fun setUp() {
+            // 1. 테스트 시작 전 원래 시스템 속성 저장
+            originalUserDir = System.getProperty(Constant.USER_DIRECTORY_PROPERTY)
+            originalHomeDir = System.getenv(Constant.HOME_DIRECTORY_PROPERTY) // 혹은 HOME_DIRECTORY_PROPERTY
+        }
+
+        @AfterEach
+        fun tearDown() {
+            System.setProperty(USER_DIRECTORY_PROPERTY, originalUserDir)
+        }
+
         @Test
         fun `pwd 는 현재 경로를 반환하다`() {
             val command = buildCommand {
@@ -144,13 +162,10 @@ class IntegrationTests {
                 appendLine("cd ~")
                 appendLine("pwd")
             }
-            System.setProperty(
-                Constant.HOME_DIRECTORY_PROPERTY,
-                System.getProperty(Constant.USER_DIRECTORY_PROPERTY) + "/directory/home-directory"
-            )
 
             val result = execute(command)
-            assertTrue { result.contains("codecrafters-shell-kotlin/app/directory/home-directory") }
+            // env 의 홈 디렉토리를 통해 이동
+            assertTrue { result.contains(System.getenv(Constant.HOME_DIRECTORY_PROPERTY)) }
         }
 
         @Test
