@@ -1,5 +1,6 @@
 import Constant.HOME_DIRECTORY_PROPERTY
 import Constant.USER_DIRECTORY_PROPERTY
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -8,6 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
+import kotlin.io.bufferedReader
 import kotlin.io.path.*
 
 
@@ -147,13 +149,25 @@ class ShellApplication(
 
         builder.environment()["PATH"] = path.parent.toString()
 
+        // stdout 이 있으면 지정
+        if (processCommand.stdout != null) {
+            val outputFile = File(processCommand.stdout)
+            outputFile.parentFile.mkdirs()
+
+            // 파일 없으면 자동 생성
+            builder.redirectOutput(ProcessBuilder.Redirect.to(outputFile))
+        } else {
+            builder.redirectOutput(ProcessBuilder.Redirect.PIPE)
+        }
+
         val process = builder.start()
 
         // 프로세스 출력 → 우리 outputStream으로 복사
-
-        process.inputStream.bufferedReader().forEachLine { line ->
-            CustomLogger.debug("프로세스 실행 출력 스트림: $line")
-            println(line, processCommand.stdout)
+        if (processCommand.stdout.isNullOrEmpty()) {
+            process.inputStream.bufferedReader().forEachLine { line ->
+                CustomLogger.debug("프로세스 실행 출력 스트림: $line")
+                println(line, processCommand.stdout)
+            }
         }
 
         process.errorStream.bufferedReader().forEachLine { line ->
