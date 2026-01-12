@@ -7,7 +7,15 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.deleteRecursively
+import kotlin.io.path.exists
+import kotlin.io.path.readText
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class IntegrationTests {
@@ -136,7 +144,10 @@ class IntegrationTests {
                 appendLine("cd ~")
                 appendLine("pwd")
             }
-            System.setProperty(Constant.HOME_DIRECTORY_PROPERTY, System.getProperty(Constant.USER_DIRECTORY_PROPERTY) + "/directory/home-directory")
+            System.setProperty(
+                Constant.HOME_DIRECTORY_PROPERTY,
+                System.getProperty(Constant.USER_DIRECTORY_PROPERTY) + "/directory/home-directory"
+            )
 
             val result = execute(command)
             assertTrue { result.contains("codecrafters-shell-kotlin/app/directory/home-directory") }
@@ -153,6 +164,76 @@ class IntegrationTests {
 
             val result = execute(command)
             assertTrue { result.contains("codecrafters-shell-kotlin/app/directory") }
+        }
+    }
+
+    @Nested
+    inner class PipelineTests {
+
+        val filePath = "./temp.txt"
+        val directoryPath = "./temp"
+
+        @OptIn(ExperimentalPathApi::class)
+        @BeforeEach
+        fun deleteFile() {
+            Files.deleteIfExists(Paths.get(filePath))
+            val directory = Paths.get(directoryPath)
+            directory.deleteRecursively()
+            Files.deleteIfExists(directory)
+        }
+
+        @Test
+        fun `파이프라인을 입력하면, 파이프라인에서 지정한 파일에 결과가 저장된다`() {
+            val command = buildCommand {
+                appendLine("type type > $filePath")
+            }
+
+            // when
+            val result = execute(command)
+            println(result)
+
+            // then
+            assertFalse { result.contains("type is a shell builtin") }
+
+            val file = Paths.get(filePath)
+            assertTrue { file.exists() }
+            assertTrue { file.readText().contains("type is a shell builtin") }
+        }
+
+        @Test
+        fun `디렉토리와 파일이 없으면 생성한다`() {
+            val directoryFile = "$directoryPath/$filePath"
+            // given
+            val command = buildCommand {
+                appendLine("type type > $directoryFile")
+            }
+
+            // 시작 전에 없는지 확인
+            assertFalse { Paths.get(directoryPath).exists() }
+            assertFalse { Paths.get(directoryFile).exists() }
+
+            // when
+            val result = execute(command)
+
+            // then
+            assertFalse { result.contains("type is a shell builtin") }
+
+            assertTrue { Paths.get(directoryPath).exists() }
+            assertTrue { Paths.get(directoryFile).exists() }
+        }
+
+        @Test
+        fun `에러는 기존 터미널에 출력된다`() {
+            // given
+            val command = buildCommand {
+                appendLine("cd not-exist")
+            }
+
+            // when
+            val result = execute(command)
+
+            // then
+            assertTrue { result.contains("cd: not-exist: No such file or directory") }
         }
     }
 

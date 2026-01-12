@@ -3,6 +3,7 @@ import Constant.USER_DIRECTORY_PROPERTY
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -43,10 +44,25 @@ class ShellApplication(
         writer.flush()
     }
 
-    private fun println(message: String) {
-        writer.write(message)
-        writer.newLine()
-        writer.flush()
+    private fun println(message: String, stdout: String? = null) {
+        if (stdout.isNullOrBlank()) {
+            writer.write(message)
+            writer.newLine()
+            writer.flush()
+            return
+        }
+        val path = Paths.get(stdout.trim())
+        val directory = path.parent.toFile()
+        val result = directory.mkdirs()
+        CustomLogger.debug("$directory 디렉토리가 있는지 확인 및 생성합니다. $result")
+
+        try {
+            CustomLogger.debug("$path 에 파일 생성을 시도합니다.")
+            Files.createFile(path)
+        } catch (e: FileAlreadyExistsException) {
+            CustomLogger.debug("이미 파일이 존재합니다.")
+        }
+        path.writeText(message)
     }
 
     /**
@@ -61,11 +77,14 @@ class ShellApplication(
         when (shellBuiltInCommand) {
             ShellBuiltInCommand.EXIT -> return CommandExecutionResult.EXIT
             ShellBuiltInCommand.ECHO -> {
-                println(processCommand.argsToLine())
+                println(processCommand.argsToLine(), processCommand.stdout)
             }
 
             ShellBuiltInCommand.PWD -> {
-                println(Paths.get(System.getProperty(USER_DIRECTORY_PROPERTY)).toAbsolutePath().toString())
+                println(
+                    Paths.get(System.getProperty(USER_DIRECTORY_PROPERTY)).toAbsolutePath().toString(),
+                    processCommand.stdout
+                )
             }
 
             ShellBuiltInCommand.CD -> {
@@ -87,7 +106,7 @@ class ShellApplication(
                     }
                     System.setProperty(USER_DIRECTORY_PROPERTY, toDirectory.toString())
                 } catch (e: IOException) {
-                    println("${processCommand.formatToLine()} No such file or directory")
+                    println("${processCommand.formatToLine()} No such file or directory", processCommand.stdout)
                 }
             }
 
@@ -96,16 +115,16 @@ class ShellApplication(
                 val nextCommand = ShellBuiltInCommand.from(args)
 
                 if (nextCommand?.type == ShellCommandType.BUILT_IN) {
-                    println("${nextCommand.value} is a shell builtin")
+                    println("${nextCommand.value} is a shell builtin", processCommand.stdout)
                     return CommandExecutionResult.BUILT_IN_EXECUTED
                 }
 
                 val result = findExecutable(args)
 
                 if (result != null) {
-                    println("$args is ${result.pathString}")
+                    println("$args is ${result.pathString}", processCommand.stdout)
                 } else {
-                    println("$args: not found")
+                    println("$args: not found", processCommand.stdout)
                 }
             }
         }
@@ -115,7 +134,7 @@ class ShellApplication(
     private fun executeShellCommand(processCommand: ProcessCommand): Boolean {
         val path = findExecutable(processCommand.command)
         if (path == null) {
-            println("${processCommand.command}: not found")
+            println("${processCommand.command}: not found", processCommand.stdout)
             return false
         }
         CustomLogger.debug("${processCommand.command} 명령어의 경로를 찾았습니다. $path")
@@ -123,7 +142,8 @@ class ShellApplication(
         val builder = ProcessBuilder(processCommand.command, *processCommand.args.toTypedArray())
             // 있으면 실행한 현재 디렉토리가 아닌, 명령어를 찾은 디렉토리로 이동해서 실행함
             // .directory(path.parent.toFile())
-            .redirectErrorStream(true)
+            // 있으면, stdout 과 stderr 를 하나의 스트림으로 합침
+            .redirectErrorStream(false)
 
         builder.environment()["PATH"] = path.parent.toString()
 
@@ -132,6 +152,12 @@ class ShellApplication(
         // 프로세스 출력 → 우리 outputStream으로 복사
 
         process.inputStream.bufferedReader().forEachLine { line ->
+            CustomLogger.debug("프로세스 실행 출력 스트림: $line")
+            println(line, processCommand.stdout)
+        }
+
+        process.errorStream.bufferedReader().forEachLine { line ->
+            CustomLogger.debug("프로세스 실행 에러 스트림: $line")
             println(line)
         }
 
