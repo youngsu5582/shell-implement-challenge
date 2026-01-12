@@ -33,7 +33,8 @@ data class ProcessCommand(
             return max(index1, index2)
         }
 
-        private fun parseCommand(line: String): List<String> = line.split(" ")
+        private fun parseCommand(line: String): List<String> =
+            line.split(" ").map { it.trim().removePrefix("\"").removePrefix("\'").removeSuffix("\"").removeSuffix("\'") }
     }
 
     fun argsToLine(): String = args.joinToString(" ")
