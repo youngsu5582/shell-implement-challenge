@@ -143,20 +143,7 @@ class ShellApplication(
 
         builder.environment()["PATH"] = path.parent.toString()
 
-        // stdout 이 있으면 지정
-        if (processCommand.stdout != null) {
-            val outputFile = processCommand.getOutputFile()
-            builder.redirectOutput(ProcessBuilder.Redirect.to(outputFile))
-        } else {
-            builder.redirectOutput(ProcessBuilder.Redirect.PIPE)
-        }
-
-        if (processCommand.stderr != null) {
-            val outputFile = processCommand.getErrorFile()
-            builder.redirectError(ProcessBuilder.Redirect.to(outputFile))
-        } else {
-            builder.redirectError(ProcessBuilder.Redirect.PIPE)
-        }
+        builder.applyRedirection(command = processCommand)
 
         val process = builder.start()
 

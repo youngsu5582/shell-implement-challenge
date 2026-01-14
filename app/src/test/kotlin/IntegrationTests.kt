@@ -322,6 +322,25 @@ class IntegrationTests {
             assertTrue { lines.size == 2 }
             assertTrue { lines.all { it == "type is a shell builtin" } }
         }
+
+        @Test
+        fun `Append 는 순서를 유지해야한다`() {
+            // given
+            val command = buildCommand {
+                appendLine("echo 123 > $filePath")
+                appendLine("echo 456 >> $filePath")
+            }
+
+            // when
+            execute(command)
+
+            val file = Paths.get(filePath)
+            assertTrue { file.exists() }
+            val lines = file.readLines()
+            assertTrue { lines.size == 2 }
+            assertTrue { lines[0] == "123" }
+            assertTrue { lines[1] == "456" }
+        }
     }
 
     private fun execute(command: String, pathList: List<String> = emptyList()): String {

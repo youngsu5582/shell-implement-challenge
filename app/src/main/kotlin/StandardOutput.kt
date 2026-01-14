@@ -30,7 +30,7 @@ data class StandardOutput(val path: String, val option: StandardOption) {
         val path = Paths.get(path.trim())
 
         when (option) {
-            StandardOption.OVERWRITE -> path.writeText(message)
+            StandardOption.OVERWRITE -> path.writeText(message + System.lineSeparator())
             StandardOption.APPEND -> path.appendText(message + System.lineSeparator())
         }
     }
