@@ -186,6 +186,7 @@ class IntegrationTests {
     inner class PipelineTests {
 
         val filePath = "./temp.txt"
+        val errorPath = "./error.txt"
         val directoryPath = "./temp"
 
         @OptIn(ExperimentalPathApi::class)
@@ -250,8 +251,24 @@ class IntegrationTests {
             // then
             assertTrue { result.contains("cd: not-exist: No such file or directory") }
         }
-    }
 
+        @Test
+        fun `에러 파이프라인도 지정 가능하다`() {
+            // given
+            val command = buildCommand {
+                appendLine("cd not-exist 2> $errorPath")
+            }
+
+            // when
+            val result = execute(command)
+
+            assertFalse { result.contains("cd: not-exist: No such file or directory") }
+
+            val file = Paths.get(errorPath)
+            assertTrue { file.exists() }
+            assertTrue { file.readText().contains("cd: not-exist: No such file or directory") }
+        }
+    }
 
     private fun execute(command: String, pathList: List<String> = emptyList()): String {
         val input = ByteArrayInputStream(command.toByteArray())

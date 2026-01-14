@@ -1,9 +1,8 @@
-import kotlin.math.max
-
 data class ProcessCommand(
     val command: String,
     val args: List<String>,
     val stdout: String? = null,
+    val stderr: String? = null
 ) {
     companion object {
         fun from(line: String): ProcessCommand {
@@ -11,30 +10,35 @@ data class ProcessCommand(
             if (commandLine.size == 1) {
                 return ProcessCommand(commandLine[0], emptyList())
             }
-            val args = commandLine.subList(1, commandLine.size)
 
-            val pipelineIndex = findPipeline(args)
-            CustomLogger.debug("$args 파이프라인 검색 결과: $pipelineIndex")
-            // 리다이렉션이 없음
+            val pipelineIndex = findExistPipeline(commandLine)
+
+            // 파이프라인이 없으면 그대로 반환
             if (pipelineIndex == -1) {
-                return ProcessCommand(commandLine[0], args)
+                return ProcessCommand(commandLine[0], commandLine.subList(1, commandLine.size))
             }
 
-            return ProcessCommand(commandLine[0], args.subList(0, pipelineIndex), args[pipelineIndex + 1])
+            val outputPipelineIndex = findOutputPipeline(commandLine)
+            val errorPipelineIndex = findErrorPipeline(commandLine)
+            CustomLogger.debug("$line 파이프라인 검색 결과: $outputPipelineIndex")
+            CustomLogger.debug("$line 에러 파이프라인 검색 결과: $errorPipelineIndex")
+            return ProcessCommand(
+                command = commandLine[0],
+                args = commandLine.subList(1, pipelineIndex),
+                stdout = if (outputPipelineIndex != -1) commandLine.getOrNull(outputPipelineIndex + 1) else null,
+                stderr = if (errorPipelineIndex != -1) commandLine.getOrNull(errorPipelineIndex + 1) else null,
+            )
         }
 
-        private fun findPipeline(args: List<String>): Int {
-            val index1 = args.indexOf("1>")
-            val index2 = args.indexOf(">")
-            if (index1 == -1 && index2 == -1) {
-                return -1
-            }
-            // 둘중 무조건 양수 존재
-            return max(index1, index2)
-        }
+        private fun findExistPipeline(args: List<String>): Int = args.indexOfFirst { it.contains(">") }
+        private fun findOutputPipeline(args: List<String>): Int =
+            args.indexOfFirst { it == "1>" || it == ">" }
+
+        private fun findErrorPipeline(args: List<String>): Int = args.indexOfFirst { it == "2>" }
 
         private fun parseCommand(line: String): List<String> =
-            line.split(" ").map { it.trim().removePrefix("\"").removePrefix("\'").removeSuffix("\"").removeSuffix("\'") }
+            line.split(" ")
+                .map { it.trim().removePrefix("\"").removePrefix("\'").removeSuffix("\"").removeSuffix("\'") }
     }
 
     fun argsToLine(): String = args.joinToString(" ")

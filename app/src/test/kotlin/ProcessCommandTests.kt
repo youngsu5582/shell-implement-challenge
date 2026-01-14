@@ -39,4 +39,29 @@ class ProcessCommandTests {
         assertTrue { command.stdout == "file.txt" }
     }
 
+    @Test
+    fun `에러 파이프라인은 stderr 을 지정한다`() {
+        val command = ProcessCommand.from("echo hello 2> file.txt")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello") }
+        assertTrue { command.stderr == "file.txt" }
+    }
+
+    @Test
+    fun `파이프라인과 에러 파이프라인 둘다 지정 가능하다`() {
+        val command = ProcessCommand.from("cd not-exist > file.txt 2> error.txt")
+        assertTrue { command.command == "cd" }
+        assertTrue { command.args.contains("not-exist") }
+        assertTrue { command.stdout == "file.txt" }
+        assertTrue { command.stderr == "error.txt" }
+    }
+
+    @Test
+    fun `순서가 바뀌어도 제대로 지정된다`() {
+        val command = ProcessCommand.from("cd not-exist 2> error.txt > file.txt")
+        assertTrue { command.command == "cd" }
+        assertTrue { command.args.contains("not-exist") }
+        assertTrue { command.stdout == "file.txt" }
+        assertTrue { command.stderr == "error.txt" }
+    }
 }

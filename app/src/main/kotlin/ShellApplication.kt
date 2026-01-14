@@ -32,7 +32,7 @@ class ShellApplication(
                 CommandExecutionResult.EXIT -> return
                 CommandExecutionResult.BUILT_IN_EXECUTED -> continue
                 CommandExecutionResult.NOT_BUILT_IN -> {
-                    CustomLogger.debug("Built-In 명령어로 실행했습니다. 명령어: $processCommand")
+                    CustomLogger.debug("명령어로 실행합니다. 명령어: $processCommand")
                     val result = executeShellCommand(processCommand)
                     CustomLogger.debug("명령어 실행결과: $result")
                 }
@@ -108,7 +108,7 @@ class ShellApplication(
                     }
                     System.setProperty(USER_DIRECTORY_PROPERTY, toDirectory.toString())
                 } catch (e: IOException) {
-                    println("${processCommand.formatToLine()} No such file or directory", processCommand.stdout)
+                    println("${processCommand.formatToLine()} No such file or directory", processCommand.stderr)
                 }
             }
 
@@ -152,17 +152,25 @@ class ShellApplication(
         // stdout 이 있으면 지정
         if (processCommand.stdout != null) {
             val outputFile = File(processCommand.stdout)
-            outputFile.parentFile.mkdirs()
-
+            outputFile.parentFile?.mkdirs()
             // 파일 없으면 자동 생성
             builder.redirectOutput(ProcessBuilder.Redirect.to(outputFile))
         } else {
             builder.redirectOutput(ProcessBuilder.Redirect.PIPE)
         }
 
+        if (processCommand.stderr != null) {
+            val outputFile = File(processCommand.stderr)
+            outputFile.parentFile?.mkdirs()
+            // 파일 없으면 자동 생성
+            builder.redirectError(ProcessBuilder.Redirect.to(outputFile))
+        } else {
+            builder.redirectError(ProcessBuilder.Redirect.PIPE)
+        }
+
         val process = builder.start()
 
-        // 프로세스 출력 → 우리 outputStream으로 복사
+        // 프로세스 출력 → 우리 stream 으로 복사
         if (processCommand.stdout.isNullOrEmpty()) {
             process.inputStream.bufferedReader().forEachLine { line ->
                 CustomLogger.debug("프로세스 실행 출력 스트림: $line")
@@ -170,9 +178,11 @@ class ShellApplication(
             }
         }
 
-        process.errorStream.bufferedReader().forEachLine { line ->
-            CustomLogger.debug("프로세스 실행 에러 스트림: $line")
-            println(line)
+        if (processCommand.stderr.isNullOrEmpty()) {
+            process.errorStream.bufferedReader().forEachLine { line ->
+                CustomLogger.debug("프로세스 실행 에러 스트림: $line")
+                println(line, processCommand.stderr)
+            }
         }
 
         return process
