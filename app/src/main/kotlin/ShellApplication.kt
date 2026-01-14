@@ -29,22 +29,6 @@ class ShellApplication(
 
             val processCommand = ProcessCommand.from(line)
 
-            if (processCommand.stdout != null) {
-                val outputFile = File(processCommand.stdout)
-                // 파일 없으면 자동 생성
-                outputFile.parentFile?.mkdirs()
-                outputFile.writeText("")
-                CustomLogger.debug("출력 파이프라인을 $outputFile 에 연결합니다")
-            }
-
-            if (processCommand.stderr != null) {
-                val outputFile = File(processCommand.stderr)
-                // 파일 없으면 자동 생성
-                outputFile.parentFile?.mkdirs()
-                outputFile.writeText("")
-                CustomLogger.debug("에러 파이프라인을 $outputFile 에 연결합니다")
-            }
-
             val executionResult = executeIfBuiltInCommand(processCommand)
             when (executionResult) {
                 CommandExecutionResult.EXIT -> return
@@ -64,25 +48,14 @@ class ShellApplication(
         writer.flush()
     }
 
-    private fun println(message: String, stdout: String? = null) {
-        if (stdout.isNullOrBlank()) {
+    private fun println(message: String, stdout: StandardOutput? = null) {
+        if (stdout == null) {
             writer.write(message)
             writer.newLine()
             writer.flush()
             return
         }
-        val path = Paths.get(stdout.trim())
-        val directory = path.parent.toFile()
-        val result = directory.mkdirs()
-        CustomLogger.debug("$directory 디렉토리가 있는지 확인 및 생성합니다. $result")
-
-        try {
-            CustomLogger.debug("$path 에 파일 생성을 시도합니다.")
-            Files.createFile(path)
-        } catch (e: FileAlreadyExistsException) {
-            CustomLogger.debug("이미 파일이 존재합니다.")
-        }
-        path.writeText(message)
+        stdout.printText(message)
     }
 
     /**
@@ -172,14 +145,14 @@ class ShellApplication(
 
         // stdout 이 있으면 지정
         if (processCommand.stdout != null) {
-            val outputFile = File(processCommand.stdout)
+            val outputFile = processCommand.getOutputFile()
             builder.redirectOutput(ProcessBuilder.Redirect.to(outputFile))
         } else {
             builder.redirectOutput(ProcessBuilder.Redirect.PIPE)
         }
 
         if (processCommand.stderr != null) {
-            val outputFile = File(processCommand.stderr)
+            val outputFile = processCommand.getErrorFile()
             builder.redirectError(ProcessBuilder.Redirect.to(outputFile))
         } else {
             builder.redirectError(ProcessBuilder.Redirect.PIPE)
@@ -189,14 +162,14 @@ class ShellApplication(
 
         // 프로세스 출력 → 우리 stream 으로 복사
         // 테스트 때문에 PIPE + inputStream 조합을 사용. INHERIT 만 해도, 자바 프로세스 콘솔 출력에 같이 포함된다.
-        if (processCommand.stdout.isNullOrEmpty()) {
+        if (processCommand.stdout == null) {
             process.inputStream.bufferedReader().forEachLine { line ->
                 CustomLogger.debug("프로세스 실행 출력 스트림: $line")
                 println(line, processCommand.stdout)
             }
         }
 
-        if (processCommand.stderr.isNullOrEmpty()) {
+        if (processCommand.stderr == null) {
             process.errorStream.bufferedReader().forEachLine { line ->
                 CustomLogger.debug("프로세스 실행 에러 스트림: $line")
                 println(line, processCommand.stderr)

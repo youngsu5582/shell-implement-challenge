@@ -1,9 +1,14 @@
+import java.io.File
+
 data class ProcessCommand(
     val command: String,
     val args: List<String>,
-    val stdout: String? = null,
-    val stderr: String? = null
+    val stdout: StandardOutput? = null,
+    val stderr: StandardOutput? = null
 ) {
+    fun getOutputFile(): File? = stdout?.path?.let { File(it) }
+    fun getErrorFile(): File? = stderr?.path?.let { File(it) }
+
     companion object {
         fun from(line: String): ProcessCommand {
             val commandLine = parseCommand(line)
@@ -25,14 +30,18 @@ data class ProcessCommand(
             return ProcessCommand(
                 command = commandLine[0],
                 args = commandLine.subList(1, pipelineIndex),
-                stdout = if (outputPipelineIndex != -1) commandLine.getOrNull(outputPipelineIndex + 1) else null,
-                stderr = if (errorPipelineIndex != -1) commandLine.getOrNull(errorPipelineIndex + 1) else null,
+                stdout = if (outputPipelineIndex != -1) StandardOutput.from(
+                    commandLine[outputPipelineIndex], commandLine[outputPipelineIndex + 1]
+                ) else null,
+                stderr = if (errorPipelineIndex != -1) StandardOutput.from(
+                    commandLine[errorPipelineIndex], commandLine[errorPipelineIndex + 1]
+                ) else null,
             )
         }
 
         private fun findExistPipeline(args: List<String>): Int = args.indexOfFirst { it.contains(">") }
         private fun findOutputPipeline(args: List<String>): Int =
-            args.indexOfFirst { it == "1>" || it == ">" }
+            args.indexOfFirst { it == "1>" || it == ">" || it == "1>>" || it == ">>" }
 
         private fun findErrorPipeline(args: List<String>): Int = args.indexOfFirst { it == "2>" }
 

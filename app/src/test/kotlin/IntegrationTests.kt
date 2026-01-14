@@ -16,6 +16,7 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
+import kotlin.io.path.readLines
 import kotlin.io.path.readText
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -284,6 +285,42 @@ class IntegrationTests {
             val file = Paths.get(errorPath)
             assertTrue { file.exists() }
             assertTrue { file.readText().isEmpty() }
+        }
+
+        @Test
+        fun `Overwrite 는 결과를 덮어쓴다`() {
+            // given
+            val command = buildCommand {
+                appendLine("type type > $filePath")
+                appendLine("type type > $filePath")
+            }
+
+            // when
+            execute(command)
+
+            val file = Paths.get(filePath)
+            assertTrue { file.exists() }
+            val lines = file.readLines()
+            assertTrue { lines.size == 1 }
+            assertTrue { lines.all { it == "type is a shell builtin" } }
+        }
+
+        @Test
+        fun `Append 는 결과를 추가한다`() {
+            // given
+            val command = buildCommand {
+                appendLine("type type >> $filePath")
+                appendLine("type type >> $filePath")
+            }
+
+            // when
+            execute(command)
+
+            val file = Paths.get(filePath)
+            assertTrue { file.exists() }
+            val lines = file.readLines()
+            assertTrue { lines.size == 2 }
+            assertTrue { lines.all { it == "type is a shell builtin" } }
         }
     }
 

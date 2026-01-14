@@ -36,7 +36,7 @@ class ProcessCommandTests {
         val command = ProcessCommand.from(command)
         assertTrue { command.command == "echo" }
         assertTrue { command.args.contains("hello") }
-        assertTrue { command.stdout == "file.txt" }
+        assertTrue { command.stdout?.path == "file.txt" }
     }
 
     @Test
@@ -44,7 +44,7 @@ class ProcessCommandTests {
         val command = ProcessCommand.from("echo hello 2> file.txt")
         assertTrue { command.command == "echo" }
         assertTrue { command.args.contains("hello") }
-        assertTrue { command.stderr == "file.txt" }
+        assertTrue { command.stderr?.path == "file.txt" }
     }
 
     @Test
@@ -52,8 +52,8 @@ class ProcessCommandTests {
         val command = ProcessCommand.from("cd not-exist > file.txt 2> error.txt")
         assertTrue { command.command == "cd" }
         assertTrue { command.args.contains("not-exist") }
-        assertTrue { command.stdout == "file.txt" }
-        assertTrue { command.stderr == "error.txt" }
+        assertTrue { command.stdout?.path == "file.txt" }
+        assertTrue { command.stderr?.path == "error.txt" }
     }
 
     @Test
@@ -61,7 +61,7 @@ class ProcessCommandTests {
         val command = ProcessCommand.from("cd not-exist 2> error.txt > file.txt")
         assertTrue { command.command == "cd" }
         assertTrue { command.args.contains("not-exist") }
-        assertTrue { command.stdout == "file.txt" }
-        assertTrue { command.stderr == "error.txt" }
+        assertTrue { command.stdout?.path == "file.txt" }
+        assertTrue { command.stderr?.path == "error.txt" }
     }
 }
