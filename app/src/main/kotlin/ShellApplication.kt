@@ -11,6 +11,7 @@ import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import kotlin.io.bufferedReader
 import kotlin.io.path.*
+import kotlin.io.writeText
 
 
 class ShellApplication(
@@ -27,6 +28,23 @@ class ShellApplication(
             val line = readLine()
 
             val processCommand = ProcessCommand.from(line)
+
+            if (processCommand.stdout != null) {
+                val outputFile = File(processCommand.stdout)
+                // 파일 없으면 자동 생성
+                outputFile.parentFile?.mkdirs()
+                outputFile.writeText("")
+                CustomLogger.debug("출력 파이프라인을 $outputFile 에 연결합니다")
+            }
+
+            if (processCommand.stderr != null) {
+                val outputFile = File(processCommand.stderr)
+                // 파일 없으면 자동 생성
+                outputFile.parentFile?.mkdirs()
+                outputFile.writeText("")
+                CustomLogger.debug("에러 파이프라인을 $outputFile 에 연결합니다")
+            }
+
             val executionResult = executeIfBuiltInCommand(processCommand)
             when (executionResult) {
                 CommandExecutionResult.EXIT -> return
@@ -96,7 +114,10 @@ class ShellApplication(
                 if (processCommand.argsToLine() == Constant.HOME_DIRECTORY_SYMBOL) {
                     CustomLogger.debug("홈 디렉토리로 이동합니다. 디렉토리: ${System.getenv(HOME_DIRECTORY_PROPERTY)}")
                     val homeDirectory = System.getenv(HOME_DIRECTORY_PROPERTY)
-                    System.setProperty(USER_DIRECTORY_PROPERTY, Paths.get(homeDirectory).toAbsolutePath().toString())
+                    System.setProperty(
+                        USER_DIRECTORY_PROPERTY,
+                        Paths.get(homeDirectory).toAbsolutePath().toString()
+                    )
                     return CommandExecutionResult.BUILT_IN_EXECUTED
                 }
 
@@ -152,8 +173,6 @@ class ShellApplication(
         // stdout 이 있으면 지정
         if (processCommand.stdout != null) {
             val outputFile = File(processCommand.stdout)
-            outputFile.parentFile?.mkdirs()
-            // 파일 없으면 자동 생성
             builder.redirectOutput(ProcessBuilder.Redirect.to(outputFile))
         } else {
             builder.redirectOutput(ProcessBuilder.Redirect.PIPE)
@@ -161,8 +180,6 @@ class ShellApplication(
 
         if (processCommand.stderr != null) {
             val outputFile = File(processCommand.stderr)
-            outputFile.parentFile?.mkdirs()
-            // 파일 없으면 자동 생성
             builder.redirectError(ProcessBuilder.Redirect.to(outputFile))
         } else {
             builder.redirectError(ProcessBuilder.Redirect.PIPE)
@@ -171,6 +188,7 @@ class ShellApplication(
         val process = builder.start()
 
         // 프로세스 출력 → 우리 stream 으로 복사
+        // 테스트 때문에 PIPE + inputStream 조합을 사용. INHERIT 만 해도, 자바 프로세스 콘솔 출력에 같이 포함된다.
         if (processCommand.stdout.isNullOrEmpty()) {
             process.inputStream.bufferedReader().forEachLine { line ->
                 CustomLogger.debug("프로세스 실행 출력 스트림: $line")

@@ -193,6 +193,7 @@ class IntegrationTests {
         @BeforeEach
         fun deleteFile() {
             Files.deleteIfExists(Paths.get(filePath))
+            Files.deleteIfExists(Paths.get(errorPath))
             val directory = Paths.get(directoryPath)
             directory.deleteRecursively()
             Files.deleteIfExists(directory)
@@ -267,6 +268,22 @@ class IntegrationTests {
             val file = Paths.get(errorPath)
             assertTrue { file.exists() }
             assertTrue { file.readText().contains("cd: not-exist: No such file or directory") }
+        }
+
+        @Test
+        fun `에러 결과가 없어도 먼저 파일을 생성한다`() {
+            // given
+            val command = buildCommand {
+                appendLine("type type 2> $errorPath")
+            }
+
+            // when
+            val result = execute(command)
+
+            assertTrue { result.contains("type is a shell builtin") }
+            val file = Paths.get(errorPath)
+            assertTrue { file.exists() }
+            assertTrue { file.readText().isEmpty() }
         }
     }
 
