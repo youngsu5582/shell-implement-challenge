@@ -43,7 +43,7 @@ data class ProcessCommand(
         private fun findOutputPipeline(args: List<String>): Int =
             args.indexOfFirst { it == "1>" || it == ">" || it == "1>>" || it == ">>" }
 
-        private fun findErrorPipeline(args: List<String>): Int = args.indexOfFirst { it == "2>" }
+        private fun findErrorPipeline(args: List<String>): Int = args.indexOfFirst { it == "2>" || it == "2>>" }
 
         private fun parseCommand(line: String): List<String> =
             line.split(" ")
