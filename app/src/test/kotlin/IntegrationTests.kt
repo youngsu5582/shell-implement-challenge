@@ -1,19 +1,16 @@
 import Constant.USER_DIRECTORY_PROPERTY
+import built.`in`.ShellBuiltInCommandType
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
-import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.deleteIfExists
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
@@ -36,8 +33,8 @@ class IntegrationTests {
         }
 
         @ParameterizedTest
-        @EnumSource(value = ShellBuiltInCommand::class)
-        fun `type 명령어는 Built-In 명령어면 Built-In 이라고 출력해준다`(command: ShellBuiltInCommand) {
+        @EnumSource(value = ShellBuiltInCommandType::class)
+        fun `type 명령어는 Built-In 명령어면 Built-In 이라고 출력해준다`(command: ShellBuiltInCommandType) {
             val request = buildCommand {
                 appendLine("type ${command.value}")
             }
@@ -54,6 +51,7 @@ class IntegrationTests {
             }
 
             val result = execute(command)
+            println(result)
 
             assertTrue { result.contains("123") }
         }

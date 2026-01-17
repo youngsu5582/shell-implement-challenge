@@ -1,4 +1,6 @@
-enum class ShellBuiltInCommand(val value: String, val type: ShellCommandType) {
+package built.`in`
+
+enum class ShellBuiltInCommandType(val value: String, val type: ShellCommandType) {
     ECHO("echo", ShellCommandType.BUILT_IN),
     EXIT("exit", ShellCommandType.BUILT_IN),
     TYPE("type", ShellCommandType.BUILT_IN),
@@ -10,7 +12,7 @@ enum class ShellBuiltInCommand(val value: String, val type: ShellCommandType) {
         fun contains(value: String): Boolean =
             entries.any { entry -> entry.value == value }
 
-        fun from(value: String): ShellBuiltInCommand? = entries.firstOrNull { it.value == value }
+        fun from(value: String): ShellBuiltInCommandType? = entries.firstOrNull { it.value == value }
     }
 }
 

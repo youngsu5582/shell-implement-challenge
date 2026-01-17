@@ -1,11 +1,26 @@
 import java.io.File
+import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 import kotlin.io.path.appendText
 import kotlin.io.path.writeText
 import kotlin.io.writeText
 
 data class StandardOutput(val path: String, val option: StandardOption) {
+
+    fun openOutputStream(): OutputStream {
+        val path = Paths.get(path.trim())
+        return when (option) {
+            StandardOption.OVERWRITE -> Files.newOutputStream(path, StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE
+            )
+            StandardOption.APPEND -> Files.newOutputStream(path, StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND, StandardOpenOption.WRITE
+            )
+        }
+    }
+
     companion object {
         fun from(pipeline: String, path: String): StandardOutput {
             val option = if (pipeline.contains(">>")) StandardOption.APPEND else StandardOption.OVERWRITE
