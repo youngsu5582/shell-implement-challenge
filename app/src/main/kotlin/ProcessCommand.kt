@@ -6,9 +6,6 @@ data class ProcessCommand(
     val stdout: StandardOutput? = null,
     val stderr: StandardOutput? = null
 ) {
-    fun getOutputFile(): File? = stdout?.path?.let { File(it) }
-    fun getErrorFile(): File? = stderr?.path?.let { File(it) }
-
     companion object {
         fun from(line: String): ProcessCommand {
             val commandLine = parseCommand(line)

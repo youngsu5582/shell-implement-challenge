@@ -341,6 +341,100 @@ class IntegrationTests {
         }
     }
 
+    @Nested
+    inner class PipeOperatorTests {
+
+        private val testFilePath = "./pipe_test.txt"
+        // 시스템 PATH를 사용하여 cat, wc, head, tail 등을 찾을 수 있도록 설정
+        private val systemPath = System.getenv("PATH")?.split(":") ?: emptyList()
+
+        @OptIn(ExperimentalPathApi::class)
+        @BeforeEach
+        fun setup() {
+            Files.deleteIfExists(Paths.get(testFilePath))
+        }
+
+        @OptIn(ExperimentalPathApi::class)
+        @AfterEach
+        fun cleanup() {
+            Files.deleteIfExists(Paths.get(testFilePath))
+        }
+
+        @Test
+        fun `cat file | wc 파이프라인이 동작한다`() {
+            // given: 테스트 파일 생성 (wc -l은 줄바꿈 문자 수를 센다)
+            val content = "line1\nline2\nline3\nline4\nline5\n"
+            Files.write(Paths.get(testFilePath), content.toByteArray())
+
+            val command = buildCommand {
+                appendLine("cat $testFilePath | wc -l")
+            }
+
+            // when
+            val result = execute(command, pathList = systemPath)
+            println("Result: $result")
+
+            // then: wc -l 은 라인 수를 출력 (5줄)
+            assertTrue { result.contains("5") }
+        }
+
+        @Test
+        fun `echo | cat 파이프라인이 동작한다`() {
+            val command = buildCommand {
+                appendLine("echo hello world | cat")
+            }
+
+            // when
+            val result = execute(command, pathList = systemPath)
+            println("Result: $result")
+
+            // then
+            assertTrue { result.contains("hello world") }
+        }
+
+        @Test
+        fun `cat file | head 파이프라인이 동작한다`() {
+            // given: 테스트 파일 생성 (10줄)
+            val content = (1..10).joinToString("\n") { "line$it" }
+            Files.write(Paths.get(testFilePath), content.toByteArray())
+
+            val command = buildCommand {
+                appendLine("cat $testFilePath | head -n 3")
+            }
+
+            // when
+            val result = execute(command, pathList = systemPath)
+            println("Result: $result")
+
+            // then: head -n 3 은 처음 3줄만 출력
+            assertTrue { result.contains("line1") }
+            assertTrue { result.contains("line2") }
+            assertTrue { result.contains("line3") }
+            assertFalse { result.contains("line4") }
+        }
+
+        @Test
+        fun `cat file | tail 파이프라인이 동작한다`() {
+            // given: 테스트 파일 생성 (10줄)
+            val content = (1..10).joinToString("\n") { "line$it" }
+            Files.write(Paths.get(testFilePath), content.toByteArray())
+
+            val command = buildCommand {
+                appendLine("cat $testFilePath | tail -n 3")
+            }
+
+            // when
+            val result = execute(command, pathList = systemPath)
+            println("Result: $result")
+
+            // then: tail -n 3 은 마지막 3줄만 출력
+            assertTrue { result.contains("line8") }
+            assertTrue { result.contains("line9") }
+            assertTrue { result.contains("line10") }
+            assertFalse { result.contains("line7") }
+        }
+    }
+
     private fun execute(command: String, pathList: List<String> = emptyList()): String {
         val input = ByteArrayInputStream(command.toByteArray())
         val output = ByteArrayOutputStream()

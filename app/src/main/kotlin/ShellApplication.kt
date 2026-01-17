@@ -2,11 +2,8 @@ import built.`in`.BuiltInCommandExecutionResult
 import built.`in`.ShellBuiltInCommandExecutor
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.file.FileSystems
-import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.io.bufferedReader
-import kotlin.io.path.*
 
 
 class ShellApplication(
@@ -24,9 +21,18 @@ class ShellApplication(
             print("$ ")
             val line = readLine()
 
-            val processCommand = ProcessCommand.from(line)
+            val processCommandLine = ProcessCommandLine.from(line)
 
+            // 파이프라인이 있는 경우 (커맨드가 2개 이상)
+            if (processCommandLine.commandLine.size > 1) {
+                CustomLogger.debug("파이프라인 실행: ${processCommandLine.commandLine}")
+                executePipeline(processCommandLine.commandLine)
+                continue
+            }
+
+            val processCommand = processCommandLine.commandLine[0]
             val executionResult = shellBuiltInCommandExecutor.execute(processCommand)
+
             when (executionResult) {
                 BuiltInCommandExecutionResult.EXIT -> return
                 BuiltInCommandExecutionResult.BUILT_IN_EXECUTED -> continue
@@ -37,6 +43,50 @@ class ShellApplication(
                 }
             }
         }
+    }
+
+    private fun executePipeline(commandList: List<ProcessCommand>) {
+        // ProcessBuilder 리스트 생성
+        val builders = commandList.mapIndexed { index, command ->
+            val path = pathFinder.findExecutable(command.command)
+            if (path == null) {
+                println("${command.command}: not found")
+                return
+            }
+
+            ProcessBuilder(command.command, *command.args.toTypedArray()).apply {
+                environment()["PATH"] = path.parent.toString()
+                redirectErrorStream(false)
+
+                // 마지막 프로세스에만 출력 리다이렉션 적용 (중간 프로세스는 파이프로 연결)
+                if (index == commandList.lastIndex) {
+                    applyRedirection(command = command)
+                }
+            }
+        }
+
+        val processList = ProcessBuilder.startPipeline(builders)
+
+        // 마지막 프로세스의 출력 처리
+        val lastCommand = commandList.last()
+        val lastProcess = processList.last()
+
+        if (lastCommand.stdout == null) {
+            lastProcess.inputStream.bufferedReader().forEachLine { line ->
+                CustomLogger.debug("파이프라인 최종 출력: $line")
+                println(line)
+            }
+        }
+
+        if (lastCommand.stderr == null) {
+            lastProcess.errorStream.bufferedReader().forEachLine { line ->
+                CustomLogger.debug("파이프라인 에러 출력: $line")
+                println(line)
+            }
+        }
+
+        // 모든 프로세스 완료 대기
+        processList.forEach { it.waitFor(1, TimeUnit.MINUTES) }
     }
 
     private fun readLine() = reader.readLine()

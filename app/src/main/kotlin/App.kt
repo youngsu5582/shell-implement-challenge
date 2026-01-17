@@ -6,7 +6,7 @@ object Constant {
 }
 
 fun main() {
-    CustomLogger.setLevel(LogLevel.DEBUG)
+    CustomLogger.setLevel(LogLevel.INFO)
     val pathList = System.getenv(Constant.PATH).split(":")
     val application = ShellApplication(pathList = pathList)
     application.start()

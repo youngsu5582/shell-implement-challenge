@@ -38,3 +38,29 @@ StandardOutput 은 모호한 객체이다.
 지금 구조상 명령어가 늘어날 때마다 수행하는 코드가 한 메소드에 늘어난다.
 
 => 각 명령어에 맞게 interface 를 구현해서 수행한다.
+
+---
+
+구현할 때, LLM 의 도움을 받았다...
+
+왜 어려웠는가?
+
+일단
+- 코틀린에 대한 지식 부족
+- 그리고, Java 에서 Process 를 처리하는 방법에 대한 지식 부족
+
+어떻게, Stdout -> Stdin 을 연결시키는지 막혔는데
+
+```kotlin
+val processList = ProcessBuilder.startPipeline(builders)
+```
+
+startPipeline 명령어를 입력하면, 자동으로 입력과 출력이 같이 연결이 된다.
+- O.S 단에서 관리를 하고, Zero-Copy 를 사용할 수 있다.
+- pipe, fork, exec 같은 시스템 콜을 사용해 커널 레벨에서 프로세스 연결.
+
+처음 stdin 과 & 마지막 stdout 만 외부에서 제어가 가능해진다.
+
+추가로, 이렇게 직접 구현을 하면서 프로세스 실행 로직이 Built-In Command 와 살짝 달라졌다.
+
+-> 이는, 차차 개선할 수 있으면 개선할 예정
