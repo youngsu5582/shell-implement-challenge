@@ -1,8 +1,6 @@
-import java.io.InputStream
 import java.io.OutputStream
 
 class Pipeline(
-    val input: InputStream,
     val output: OutputStream,
     val error: OutputStream
 ) {

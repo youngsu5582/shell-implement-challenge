@@ -26,11 +26,7 @@ class ShellBuiltInCommandExecutor(
         Type(pathFinder)
     )
 
-    fun execute(processCommand: ProcessCommand): BuiltInCommandExecutionResult {
-        val outputStream = toStream(processCommand.stdout)
-        val errorStream = toStream(processCommand.stderr)
-        val pipeline = Pipeline(inputStream, outputStream, errorStream)
-
+    fun execute(processCommand: ProcessCommand, pipeline: Pipeline): BuiltInCommandExecutionResult {
         val commandType = ShellBuiltInCommandType.from(processCommand.command)
         if (commandType == null) {
             return BuiltInCommandExecutionResult.NOT_BUILT_IN
@@ -38,6 +34,10 @@ class ShellBuiltInCommandExecutor(
         CustomLogger.debug("Executing command: $commandType")
         val command = getCommand(commandType)
         return command.execute(processCommand, pipeline)
+    }
+
+    fun isBuiltIn(processCommand: ProcessCommand): Boolean {
+        return ShellBuiltInCommandType.from(processCommand.command) != null
     }
 
     private fun getCommand(builtInCommand: ShellBuiltInCommandType): BuiltInCommand =

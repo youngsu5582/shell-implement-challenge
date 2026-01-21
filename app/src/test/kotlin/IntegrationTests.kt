@@ -433,6 +433,21 @@ class IntegrationTests {
             assertTrue { result.contains("line10") }
             assertFalse { result.contains("line7") }
         }
+
+        @Test
+        fun `echo | wc 파이프라인이 동작한다`() {
+            // given BUILT_IN + SHELL COMMAND
+            val command = buildCommand {
+                appendLine("echo raspberry\\\\nblueberry | wc")
+            }
+
+            // when
+            val result = execute(command, pathList = systemPath)
+            println("Result: $result")
+
+            // then 1 1 22 포함
+            assertTrue { result.contains("        1       1      22") }
+        }
     }
 
     private fun execute(command: String, pathList: List<String> = emptyList()): String {
