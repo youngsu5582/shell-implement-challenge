@@ -43,8 +43,8 @@ data class ProcessCommand(
         private fun findErrorPipeline(args: List<String>): Int = args.indexOfFirst { it == "2>" || it == "2>>" }
 
         private fun parseCommand(line: String): List<String> =
-            line.split(" ")
-                .map { it.trim().removePrefix("\"").removePrefix("\'").removeSuffix("\"").removeSuffix("\'") }
+            // 라인처리만, Tokenizer 가 파싱
+            ShellTokenizer.tokenized(line)
     }
 
     fun argsToLine(): String = args.joinToString(" ")

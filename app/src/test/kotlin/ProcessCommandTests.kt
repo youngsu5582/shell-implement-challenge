@@ -64,4 +64,42 @@ class ProcessCommandTests {
         assertTrue { command.stdout?.path == "file.txt" }
         assertTrue { command.stderr?.path == "error.txt" }
     }
+
+    @Test
+    fun `'hello    world'	는 그대로 hello    world	로 인식된다`() {
+        val command = ProcessCommand.from("echo 'hello    world'")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello    world") }
+    }
+
+    @Test
+    fun `echo hello    world 는 hello world 로 인식된다`() {
+        val command = ProcessCommand.from("echo hello    world")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello") }
+        assertTrue { command.args.contains("world") }
+    }
+
+    @Test
+    fun `echo 'hello''world' 는 helloworld 로 인식된다`() {
+        val command = ProcessCommand.from("echo 'hello''world'")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("helloworld") }
+    }
+
+    @Test
+    fun `echo hello''world 는 helloworld 로 인식된다`() {
+        val command = ProcessCommand.from("echo hello''world")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("helloworld") }
+    }
+
+    @Test
+    fun `echo hello 'hello_world' 는 hello hello_world 로 인식된다`() {
+        val command = ProcessCommand.from("echo hello 'hello_world'")
+        println(command)
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello") }
+        assertTrue { command.args.contains("hello_world") }
+    }
 }
