@@ -6,6 +6,7 @@ enum class ShellBuiltInCommandType(val value: String, val type: ShellCommandType
     TYPE("type", ShellCommandType.BUILT_IN),
     PWD("pwd", ShellCommandType.BUILT_IN),
     CD("cd", ShellCommandType.BUILT_IN),
+    HISTORY("history", ShellCommandType.BUILT_IN),
     ;
 
     companion object {

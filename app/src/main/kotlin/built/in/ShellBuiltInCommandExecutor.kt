@@ -8,6 +8,7 @@ import built.`in`.command.BuiltInCommand
 import built.`in`.command.Cd
 import built.`in`.command.Echo
 import built.`in`.command.Exit
+import built.`in`.command.History
 import built.`in`.command.Pwd
 import built.`in`.command.Type
 import java.io.InputStream
@@ -23,6 +24,7 @@ class ShellBuiltInCommandExecutor(
         Echo(),
         Exit(),
         Pwd(),
+        History(),
         Type(pathFinder)
     )
 
