@@ -2,7 +2,8 @@ object ShellTokenizer {
 
     private enum class TokenizerStatus {
         PROCESSING,
-        IN_QUOTED
+        IN_SINGLE_QUOTED,
+        IN_DOUBLE_QUOTED
     }
 
     fun tokenized(line: String): List<String> {
@@ -16,17 +17,26 @@ object ShellTokenizer {
                 TokenizerStatus.PROCESSING -> {
                     when (char) {
                         // 따옴표시 시작
-                        '\'', '\"' -> state = TokenizerStatus.IN_QUOTED
+                        '\'' -> state = TokenizerStatus.IN_SINGLE_QUOTED
+                        '\"' -> state = TokenizerStatus.IN_DOUBLE_QUOTED
                         // 공백이면 POP
                         ' ' -> flushToken(tokenBuilder, tokens)
                         else -> tokenBuilder.append(char)
                     }
                 }
 
-                TokenizerStatus.IN_QUOTED -> {
+                TokenizerStatus.IN_SINGLE_QUOTED -> {
                     when (char) {
-                        // 따옴표시 종료
-                        '\'', '\"' -> state = TokenizerStatus.PROCESSING
+                        // 작은 따옴표시 종료
+                        '\'' -> state = TokenizerStatus.PROCESSING
+                        else -> tokenBuilder.append(char)
+                    }
+                }
+
+                TokenizerStatus.IN_DOUBLE_QUOTED -> {
+                    when (char) {
+                        // 큰 따옴표시 종료
+                        '\"' -> state = TokenizerStatus.PROCESSING
                         else -> tokenBuilder.append(char)
                     }
                 }

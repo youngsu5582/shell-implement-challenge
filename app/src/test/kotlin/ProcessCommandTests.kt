@@ -102,4 +102,50 @@ class ProcessCommandTests {
         assertTrue { command.args.contains("hello") }
         assertTrue { command.args.contains("hello_world") }
     }
+
+    @Test
+    fun `echo "hello    world" 는 hello    world 로 인식된다`() {
+        val command = ProcessCommand.from("echo \"hello    world\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello    world") }
+    }
+
+    @Test
+    fun `echo "hello""world" 는 helloworld 로 인식된다`() {
+        val command = ProcessCommand.from("echo \"hello\"\"world\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("helloworld") }
+    }
+
+    @Test
+    fun `echo "hello" "world" 는 hello world 로 인식된다`() {
+        val command = ProcessCommand.from("echo \"hello\" \"world\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello") }
+        assertTrue { command.args.contains("world") }
+    }
+
+    @Test
+    fun `echo "shell's test" 는 shell's test 로 인식된다`() {
+        val command = ProcessCommand.from("echo \"shell's test\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("shell's test") }
+    }
+
+    @Test
+    fun `echo "quz  hello"  "bar" 는 quz  hello bar 로 인식된다`() {
+        val command = ProcessCommand.from("echo \"quz  hello\"  \"bar\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("quz  hello") }
+        assertTrue { command.args.contains("bar") }
+    }
+
+    @Test
+    fun `echo "bar"  "shell's"  "foo" 는 bar shell's foo 로 인식된다`() {
+        val command = ProcessCommand.from("echo \"bar\"  \"shell's\"  \"foo\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("bar") }
+        assertTrue { command.args.contains("shell's") }
+        assertTrue { command.args.contains("foo") }
+    }
 }

@@ -9,6 +9,7 @@ data class ProcessCommand(
     companion object {
         fun from(line: String): ProcessCommand {
             val commandLine = parseCommand(line)
+            CustomLogger.debug("$line 파싱 결과: $commandLine")
             if (commandLine.size == 1) {
                 return ProcessCommand(commandLine[0], emptyList())
             }
