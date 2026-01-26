@@ -3,7 +3,8 @@ object ShellTokenizer {
     private enum class TokenizerStatus {
         PROCESSING,
         IN_SINGLE_QUOTED,
-        IN_DOUBLE_QUOTED
+        IN_DOUBLE_QUOTED,
+        LITERAL
     }
 
     fun tokenized(line: String): List<String> {
@@ -19,6 +20,7 @@ object ShellTokenizer {
                         // 따옴표시 시작
                         '\'' -> state = TokenizerStatus.IN_SINGLE_QUOTED
                         '\"' -> state = TokenizerStatus.IN_DOUBLE_QUOTED
+                        '\\' -> state = TokenizerStatus.LITERAL
                         // 공백이면 POP
                         ' ' -> flushToken(tokenBuilder, tokens)
                         else -> tokenBuilder.append(char)
@@ -39,6 +41,11 @@ object ShellTokenizer {
                         '\"' -> state = TokenizerStatus.PROCESSING
                         else -> tokenBuilder.append(char)
                     }
+                }
+
+                TokenizerStatus.LITERAL -> {
+                    tokenBuilder.append(char)
+                    state = TokenizerStatus.PROCESSING
                 }
             }
         }

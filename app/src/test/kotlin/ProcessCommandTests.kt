@@ -1,4 +1,5 @@
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.Test
@@ -147,5 +148,42 @@ class ProcessCommandTests {
         assertTrue { command.args.contains("bar") }
         assertTrue { command.args.contains("shell's") }
         assertTrue { command.args.contains("foo") }
+    }
+
+    /**
+     * 아래 테스트들은 '\' 가 한개씩 더 붙어있다.
+     * \ 자체가 바로 LITERAL 인식 되어서 사라져버림
+     */
+
+    @Test
+    @DisplayName("echo multiple\\ \\ \\ spaces 는 multiple   spaces 로 인식된다")
+    fun `백슬래시로 공백을 이스케이프한다`() {
+        val command = ProcessCommand.from("echo multiple\\ \\ \\ spaces")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("multiple   spaces") }
+    }
+
+    @Test
+    @DisplayName("echo test\\nexample 는 multiple testnexample 로 인식된다")
+    fun `백슬래시로 공백을 이스케이프한다2`() {
+        val command = ProcessCommand.from("echo test\\nexample")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("testnexample") }
+    }
+
+    @Test
+    @DisplayName("echo \\'hello\\' 는 'hello' 로 인식된다")
+    fun `백슬래시로 공백을 이스케이프한다3`() {
+        val command = ProcessCommand.from("echo \\'hello\\'")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("'hello'") }
+    }
+
+    @Test
+    @DisplayName("echo hello\\\\world' 는 'hello\\world' 로 인식된다")
+    fun `백슬래시로 공백을 이스케이프한다4`() {
+        val command = ProcessCommand.from("echo hello\\\\world")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello\\world") }
     }
 }
