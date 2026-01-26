@@ -10,6 +10,8 @@ object ShellTokenizer {
     fun tokenized(line: String): List<String> {
         val tokens = mutableListOf<String>()
         val tokenBuilder = StringBuilder()
+        var prevStatus = TokenizerStatus.PROCESSING
+
         // 초기 시작은 프로세싱
         var state = TokenizerStatus.PROCESSING
 
@@ -39,13 +41,20 @@ object ShellTokenizer {
                     when (char) {
                         // 큰 따옴표시 종료
                         '\"' -> state = TokenizerStatus.PROCESSING
+                        '\\' -> {
+                            prevStatus = TokenizerStatus.IN_DOUBLE_QUOTED
+                            state = TokenizerStatus.LITERAL
+                        }
+
                         else -> tokenBuilder.append(char)
                     }
                 }
 
                 TokenizerStatus.LITERAL -> {
                     tokenBuilder.append(char)
-                    state = TokenizerStatus.PROCESSING
+                    state = prevStatus
+                    // 이전상태도, 실행 상태로 변경
+                    prevStatus = TokenizerStatus.PROCESSING
                 }
             }
         }

@@ -186,4 +186,111 @@ class ProcessCommandTests {
         assertTrue { command.command == "echo" }
         assertTrue { command.args.contains("hello\\world") }
     }
+
+    /**
+     * 이중 따옴표 내의 백슬래시 테스트
+     */
+    @Test
+    @DisplayName("echo \"just'one'\\\\n'backslash\" 는 just'one'\\n'backslash 로 인식된다")
+    fun `이중 따옴표 내의 백슬래시는 특수문자만 이스케이프한다1`() {
+        val command = ProcessCommand.from("echo \"just'one'\\\\n'backslash\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("just'one'\\n'backslash") }
+    }
+
+    @Test
+    @DisplayName("echo \"inside\\\"literal_quote.\"outside\\\"는 inside\"literal_quote.outside\" 로 인식된다")
+    fun `이중 따옴표 내의 백슬래시는 특수문자만 이스케이프한다2`() {
+        val command = ProcessCommand.from("echo \"inside\\\"literal_quote.\"outside\\\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("inside\"literal_quote.outside\"") }
+    }
+
+    @Test
+    @DisplayName("cat /tmp/\"number 1\" 을 정상적으로 파싱한다")
+    fun `이중 따옴표 내의 공백은 보존된다1`() {
+        val command = ProcessCommand.from("cat /tmp/\"number 1\"")
+        assertTrue { command.command == "cat" }
+        assertTrue { command.args.contains("/tmp/number 1") }
+    }
+
+    @Test
+    @DisplayName("cat /tmp/\"doublequote \\\\\"  2\" 를 정상적으로 파싱한다")
+    fun `이중 따옴표 내의 공백은 보존된다2`() {
+        val command = ProcessCommand.from("cat /tmp/\"doublequote \\\"  2\"")
+        assertTrue { command.command == "cat" }
+        assertTrue { command.args.contains("/tmp/doublequote \"  2") }
+    }
+
+    @Test
+    @DisplayName("cat /tmp/\"backslash \\\\  3\" 를 정상적으로 파싱한다")
+    fun `이중 따옴표 내의 공백은 보존된다3`() {
+        val command = ProcessCommand.from("cat /tmp/\"backslash \\\\  3\"")
+        assertTrue { command.command == "cat" }
+        assertTrue { command.args.contains("/tmp/backslash \\  3") }
+    }
+
+    @Test
+    @DisplayName("echo \"A \\\\ escapes itself\" 는 A \\ escapes itself 로 인식된다")
+    fun `이중 따옴표 내에서 역슬래시 이스케이프1`() {
+        val command = ProcessCommand.from("echo \"A \\\\ escapes itself\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("A \\ escapes itself") }
+    }
+
+    @Test
+    @DisplayName("echo \"A \\\" inside double quotes\" 는 A \" inside double quotes 로 인식된다")
+    fun `이중 따옴표 내에서 역슬래시 이스케이프2`() {
+        val command = ProcessCommand.from("echo \"A \\\" inside double quotes\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("A \" inside double quotes") }
+    }
+
+    @Test
+    @DisplayName("echo \"A \\\" inside double quotes\" 는 A \" inside double quotes 로 인식된다")
+    fun `이중 따옴표 내에서 역슬래시 이스케이프3`() {
+        val command = ProcessCommand.from("echo \"A \\\" inside double quotes\"")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("A \" inside double quotes") }
+    }
+
+    @Test
+    @DisplayName("echo 'multiple\\\\slashes' 는 multiple\\\\slashes 로 인식된다")
+    fun `단일 따옴표 내의 백슬래시는 리터럴이다1`() {
+        val command = ProcessCommand.from("echo 'multiple\\\\slashes'")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("multiple\\\\slashes") }
+    }
+
+    @Test
+    @DisplayName("echo 'every\"thing_is\"literal' 는 every\"thing_is\"literal 로 인식된다")
+    fun `단일 따옴표 내의 백슬래시는 리터럴이다2`() {
+        val command = ProcessCommand.from("echo 'every\\\"thing_is\\\"literal'")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("every\\\"thing_is\\\"literal") }
+    }
+
+    @Test
+    @DisplayName("cat /tmp/'no slash 1' 을 정상적으로 파싱한다")
+    fun `단일 따옴표 내의 공백은 보존되고 백슬래시도 리터럴1`() {
+        val command = ProcessCommand.from("cat /tmp/'no slash 1'")
+        assertTrue { command.command == "cat" }
+        assertTrue { command.args.contains("/tmp/no slash 1") }
+    }
+
+    @Test
+    @DisplayName("cat /tmp/'one slash \\2' 를 정상적으로 파싱한다")
+    fun `단일 따옴표 내의 공백은 보존되고 백슬래시도 리터럴2`() {
+        val command = ProcessCommand.from("cat /tmp/'one slash \\\\2'")
+        assertTrue { command.command == "cat" }
+        assertTrue { command.args.contains("/tmp/one slash \\\\2") }
+    }
+
+    @Test
+    @DisplayName("cat /tmp/'two slashes \\3\\\\' 를 정상적으로 파싱한다")
+    fun `단일 따옴표 내의 공백은 보존되고 백슬래시도 리터럴3`() {
+        val command = ProcessCommand.from("cat /tmp/'two slashes \\\\\\3\\\\'")
+        assertTrue { command.command == "cat" }
+        assertTrue { command.args.contains("/tmp/two slashes \\\\\\3\\\\") }
+    }
 }
