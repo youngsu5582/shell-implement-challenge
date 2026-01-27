@@ -3,6 +3,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ProcessCommandTests {
 
@@ -292,5 +293,87 @@ class ProcessCommandTests {
         val command = ProcessCommand.from("cat /tmp/'two slashes \\\\\\3\\\\'")
         assertTrue { command.command == "cat" }
         assertTrue { command.args.contains("/tmp/two slashes \\\\\\3\\\\") }
+    }
+
+    @Test
+    @DisplayName("\\'echo\\' hello' 는 echo hello 로 인식된다")
+    fun `단일 따옴표로 감싸도 명령어로 인식`() {
+
+        val command = ProcessCommand.from("\'echo\' hello")
+        assertTrue { command.command == "echo" }
+        assertTrue { command.args.contains("hello") }
+    }
+
+    @Test
+    fun `단일 따옴표로 감싸도 명령어로 인식2`() {
+
+        val command = ProcessCommand.from("\"exe with \'single quotes\'\" /tmp/cow/f3")
+        println(command.command)
+        println(command.args)
+        assertTrue { command.command == "exe with \'single quotes\'" }
+        assertTrue { command.args.contains("/tmp/cow/f3") }
+    }
+
+    @Test
+    fun `단일 따옴표로 감싸도 명령어로 인식3`() {
+
+        val command = ProcessCommand.from("\"my 'program'\"")
+        assertTrue { command.command == "my 'program'" }
+    }
+
+    @Test
+    @DisplayName("\\\"exe with \\'single quotes\\'\\\" → exe with 'single quotes'")
+    fun `이중 따옴표 내의 백슬래시 이스케이프가 올바르게 처리된다`() {
+        val command = ProcessCommand.from("\"exe with \\'single quotes\\'\" /tmp/cow/f3")
+        assertEquals("exe with 'single quotes'", command.command)
+        assertTrue { command.args.contains("/tmp/cow/f3") }
+    }
+
+    @Test
+    @DisplayName("\\\"my \\'program\\'\\\" → my 'program'")
+    fun `이중 따옴표 내의 단일 따옴표가 올바르게 처리된다`() {
+        val command = ProcessCommand.from("\"my \'program\'\" arg1")
+        assertEquals("my 'program'", command.command)
+        assertTrue { command.args.contains("arg1") }
+    }
+
+    @Test
+    @DisplayName("echo hello\\\\world → echo hello\\world (command: echo, args: hello\\world)")
+    fun `백슬래시가 올바르게 이스케이프된다`() {
+        val command = ProcessCommand.from("echo hello\\\\world")
+        assertEquals("echo", command.command)
+        assertTrue { command.args.contains("hello\\world") }
+    }
+
+    @Test
+    @DisplayName("\\\"A \\\\ escapes itself\\\" → A \\ escapes itself")
+    fun `이중 따옴표 내의 백슬래시 이스케이프가 작동한다`() {
+        val command = ProcessCommand.from("\"A \\\\ escapes itself\" arg")
+        assertEquals("A \\ escapes itself", command.command)
+        assertTrue { command.args.contains("arg") }
+    }
+
+    @Test
+    @DisplayName("'single\\\\slashes' → single\\\\slashes (단일 따옴표 내 백슬래시 리터럴)")
+    fun `단일 따옴표 내의 백슬래시가 리터럴이다`() {
+        val command = ProcessCommand.from("'single\\\\slashes' arg")
+        assertEquals("single\\\\slashes", command.command)
+        assertTrue { command.args.contains("arg") }
+    }
+
+    @Test
+    @DisplayName("\\\"quoted\\\" \\\"file\\\"name\\\" → quoted file name")
+    fun `이중 따옴표로 감싸진 공백 포함 파일명이 올바르게 파싱된다`() {
+        val command = ProcessCommand.from("\"quoted file name\" arg")
+        assertEquals("quoted file name", command.command)
+        assertTrue { command.args.contains("arg") }
+    }
+
+    @Test
+    @DisplayName("'my program' arg1 → my program + arg1")
+    fun `단일 따옴표로 감싸진 공백 포함 실행 파일명이 올바르게 파싱된다`() {
+        val command = ProcessCommand.from("'my program' arg1")
+        assertEquals("my program", command.command)
+        assertTrue { command.args.contains("arg1") }
     }
 }
