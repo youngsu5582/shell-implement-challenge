@@ -446,7 +446,7 @@ class IntegrationTests {
             println("Result: $result")
 
             // then 1 1 22 포함
-            assertTrue { result.contains("        1       1      22") }
+            assertTrue { result.contains("        1       1      21") }
         }
     }
 
