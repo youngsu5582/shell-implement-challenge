@@ -1,9 +1,9 @@
-package built.`in`.command
+package shell.built.`in`.command
 
 import Pipeline
 import ProcessCommand
-import built.`in`.BuiltInCommandExecutionResult
-import built.`in`.ShellBuiltInCommandType
+import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.built.`in`.ShellBuiltInCommandType
 
 class Exit : BuiltInCommand {
     override fun type(): ShellBuiltInCommandType {

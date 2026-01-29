@@ -1,4 +1,4 @@
-package built.`in`
+package shell.built.`in`
 
 enum class ShellBuiltInCommandType(val value: String, val type: ShellCommandType) {
     ECHO("echo", ShellCommandType.BUILT_IN),

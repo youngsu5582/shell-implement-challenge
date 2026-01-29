@@ -1,4 +1,4 @@
-package built.`in`
+package shell.built.`in`
 
 enum class BuiltInCommandExecutionResult {
     EXIT,

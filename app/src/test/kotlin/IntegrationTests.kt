@@ -1,5 +1,5 @@
 import Constant.USER_DIRECTORY_PROPERTY
-import built.`in`.ShellBuiltInCommandType
+import shell.built.`in`.ShellBuiltInCommandType
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested

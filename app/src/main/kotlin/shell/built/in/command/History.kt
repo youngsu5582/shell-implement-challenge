@@ -1,9 +1,9 @@
-package built.`in`.command
+package shell.built.`in`.command
 
 import Pipeline
 import ProcessCommand
-import built.`in`.BuiltInCommandExecutionResult
-import built.`in`.ShellBuiltInCommandType
+import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.built.`in`.ShellBuiltInCommandType
 
 /**
  * 구현은 하지 않지만, 테스트 통과를 위해 추가

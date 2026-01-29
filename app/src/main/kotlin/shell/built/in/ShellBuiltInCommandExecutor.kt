@@ -1,16 +1,16 @@
-package built.`in`
+package shell.built.`in`
 
 import PathFinder
 import Pipeline
 import ProcessCommand
 import StandardOutput
-import built.`in`.command.BuiltInCommand
-import built.`in`.command.Cd
-import built.`in`.command.Echo
-import built.`in`.command.Exit
-import built.`in`.command.History
-import built.`in`.command.Pwd
-import built.`in`.command.Type
+import shell.built.`in`.command.BuiltInCommand
+import shell.built.`in`.command.Cd
+import shell.built.`in`.command.Echo
+import shell.built.`in`.command.Exit
+import shell.built.`in`.command.History
+import shell.built.`in`.command.Pwd
+import shell.built.`in`.command.Type
 import java.io.InputStream
 import java.io.OutputStream
 

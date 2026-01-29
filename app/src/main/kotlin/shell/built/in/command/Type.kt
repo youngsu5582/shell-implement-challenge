@@ -1,11 +1,11 @@
-package built.`in`.command
+package shell.built.`in`.command
 
 import PathFinder
 import Pipeline
 import ProcessCommand
-import built.`in`.BuiltInCommandExecutionResult
-import built.`in`.ShellBuiltInCommandType
-import built.`in`.ShellCommandType
+import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.built.`in`.ShellBuiltInCommandType
+import shell.built.`in`.ShellCommandType
 import kotlin.io.path.pathString
 
 class Type(

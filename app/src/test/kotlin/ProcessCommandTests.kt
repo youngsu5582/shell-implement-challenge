@@ -324,9 +324,9 @@ class ProcessCommandTests {
     @Test
     @DisplayName("\\\"exe with \\'single quotes\\'\\\" → exe with 'single quotes'")
     fun `이중 따옴표 내의 백슬래시 이스케이프가 올바르게 처리된다`() {
-        val command = ProcessCommand.from("\"exe with \\'single quotes\\'\" /tmp/cow/f3")
+        val command = ProcessCommand.from("\"exe with \\'single quotes\\'\" /tmp/bee/f3")
         assertEquals("exe with 'single quotes'", command.command)
-        assertTrue { command.args.contains("/tmp/cow/f3") }
+        assertTrue { command.args.contains("/tmp/bee/f3") }
     }
 
     @Test

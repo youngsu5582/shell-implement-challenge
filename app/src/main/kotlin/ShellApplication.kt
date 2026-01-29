@@ -1,5 +1,5 @@
-import built.`in`.BuiltInCommandExecutionResult
-import built.`in`.ShellBuiltInCommandExecutor
+import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.built.`in`.ShellBuiltInCommandExecutor
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
