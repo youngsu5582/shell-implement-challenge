@@ -4,6 +4,7 @@ import PathFinder
 import Pipeline
 import ProcessCommand
 import StandardOutput
+import shell.CommandExecutionResult
 import shell.built.`in`.command.BuiltInCommand
 import shell.built.`in`.command.Cd
 import shell.built.`in`.command.Echo
@@ -28,10 +29,10 @@ class ShellBuiltInCommandExecutor(
         Type(pathFinder)
     )
 
-    fun execute(processCommand: ProcessCommand, pipeline: Pipeline): BuiltInCommandExecutionResult {
+    fun execute(processCommand: ProcessCommand, pipeline: Pipeline): CommandExecutionResult {
         val commandType = ShellBuiltInCommandType.from(processCommand.command)
         if (commandType == null) {
-            return BuiltInCommandExecutionResult.NOT_BUILT_IN
+            return CommandExecutionResult.NOT_BUILT_IN
         }
         CustomLogger.debug("Executing command: $commandType")
         val command = getCommand(commandType)

@@ -112,6 +112,7 @@ class IntegrationTests {
             }
 
             val result = execute(command, pathList = pathList)
+            println(result)
 
             assertTrue(result.contains("not_exist_command: not found"))
         }
@@ -345,6 +346,7 @@ class IntegrationTests {
     inner class PipeOperatorTests {
 
         private val testFilePath = "./pipe_test.txt"
+
         // 시스템 PATH를 사용하여 cat, wc, head, tail 등을 찾을 수 있도록 설정
         private val systemPath = System.getenv("PATH")?.split(":") ?: emptyList()
 

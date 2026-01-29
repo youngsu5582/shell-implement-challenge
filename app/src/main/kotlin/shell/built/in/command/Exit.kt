@@ -2,7 +2,7 @@ package shell.built.`in`.command
 
 import Pipeline
 import ProcessCommand
-import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.CommandExecutionResult
 import shell.built.`in`.ShellBuiltInCommandType
 
 class Exit : BuiltInCommand {
@@ -10,7 +10,7 @@ class Exit : BuiltInCommand {
         return ShellBuiltInCommandType.EXIT
     }
 
-    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): BuiltInCommandExecutionResult {
-        return BuiltInCommandExecutionResult.EXIT
+    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): CommandExecutionResult {
+        return CommandExecutionResult.EXIT
     }
 }

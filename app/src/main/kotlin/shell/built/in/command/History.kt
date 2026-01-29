@@ -2,7 +2,7 @@ package shell.built.`in`.command
 
 import Pipeline
 import ProcessCommand
-import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.CommandExecutionResult
 import shell.built.`in`.ShellBuiltInCommandType
 
 /**
@@ -14,7 +14,7 @@ class History : BuiltInCommand {
         return ShellBuiltInCommandType.HISTORY
     }
 
-    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): BuiltInCommandExecutionResult {
-        return BuiltInCommandExecutionResult.BUILT_IN_EXECUTED
+    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): CommandExecutionResult {
+        return CommandExecutionResult.BUILT_IN_EXECUTED
     }
 }

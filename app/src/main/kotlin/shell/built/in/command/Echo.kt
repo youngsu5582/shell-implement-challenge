@@ -2,7 +2,7 @@ package shell.built.`in`.command
 
 import Pipeline
 import ProcessCommand
-import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.CommandExecutionResult
 import shell.built.`in`.ShellBuiltInCommandType
 
 class Echo : BuiltInCommand {
@@ -10,8 +10,8 @@ class Echo : BuiltInCommand {
         return ShellBuiltInCommandType.ECHO
     }
 
-    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): BuiltInCommandExecutionResult {
+    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): CommandExecutionResult {
         pipeline.write(processCommand.argsToLine())
-        return BuiltInCommandExecutionResult.BUILT_IN_EXECUTED
+        return CommandExecutionResult.BUILT_IN_EXECUTED
     }
 }

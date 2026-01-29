@@ -3,7 +3,7 @@ package shell.built.`in`.command
 import PathFinder
 import Pipeline
 import ProcessCommand
-import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.CommandExecutionResult
 import shell.built.`in`.ShellBuiltInCommandType
 import shell.built.`in`.ShellCommandType
 import kotlin.io.path.pathString
@@ -15,13 +15,13 @@ class Type(
         return ShellBuiltInCommandType.TYPE
     }
 
-    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): BuiltInCommandExecutionResult {
+    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): CommandExecutionResult {
         val args = processCommand.args[0]
         val nextCommand = ShellBuiltInCommandType.Companion.from(args)
 
         if (nextCommand?.type == ShellCommandType.BUILT_IN) {
             pipeline.write("${nextCommand.value} is a shell builtin")
-            return BuiltInCommandExecutionResult.BUILT_IN_EXECUTED
+            return CommandExecutionResult.BUILT_IN_EXECUTED
         }
 
         val result = pathFinder.findExecutable(args)
@@ -31,6 +31,6 @@ class Type(
         } else {
             pipeline.writeError("$args: not found")
         }
-        return BuiltInCommandExecutionResult.BUILT_IN_EXECUTED
+        return CommandExecutionResult.BUILT_IN_EXECUTED
     }
 }

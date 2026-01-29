@@ -1,4 +1,5 @@
-import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.CommandExecutionResult
+import shell.ProcessRunner
 import shell.built.`in`.ShellBuiltInCommandExecutor
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -6,8 +7,14 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 import kotlin.io.bufferedReader
+import kotlin.text.get
 
 
+/**
+ * Shell Application 은 결국
+ * REPL 의 반복이다.
+ *
+ */
 class ShellApplication(
     private val inputStream: InputStream = System.`in`,
     private val outputStream: OutputStream = System.out,
@@ -17,6 +24,7 @@ class ShellApplication(
     private val writer = outputStream.bufferedWriter()
     private val pathFinder = PathFinder(pathList)
     private val shellBuiltInCommandExecutor = ShellBuiltInCommandExecutor(inputStream, outputStream, pathFinder)
+    private val processRunner = ProcessRunner(pathFinder, outputStream, shellBuiltInCommandExecutor)
 
     fun start() {
         while (true) {
@@ -33,19 +41,10 @@ class ShellApplication(
             }
 
             val processCommand = processCommandLine.commandLine[0]
-            val outputStream = toStream(processCommand.stdout, true)
-            val errorStream = toStream(processCommand.stderr, true)
-            val pipeline = Pipeline(outputStream, errorStream)
-            val executionResult = shellBuiltInCommandExecutor.execute(processCommand, pipeline)
+            val executionResult = processRunner.execute(processCommand)
 
-            when (executionResult) {
-                BuiltInCommandExecutionResult.EXIT -> return
-                BuiltInCommandExecutionResult.BUILT_IN_EXECUTED -> continue
-                BuiltInCommandExecutionResult.NOT_BUILT_IN -> {
-                    CustomLogger.debug("명령어로 실행합니다. 명령어: $processCommand")
-                    val result = executeShellCommand(processCommand)
-                    CustomLogger.debug("명령어 실행결과: $result")
-                }
+            if (executionResult == CommandExecutionResult.EXIT) {
+                return
             }
         }
     }
@@ -107,12 +106,12 @@ class ShellApplication(
             val builtInResult = shellBuiltInCommandExecutor.execute(command, pipeline)
             CustomLogger.debug("${command} 실행결과 : $builtInResult")
 
-            if (builtInResult == BuiltInCommandExecutionResult.BUILT_IN_EXECUTED) {
+            if (builtInResult == CommandExecutionResult.BUILT_IN_EXECUTED) {
                 prevOutputBuffer = currentOutputBuffer
                 CustomLogger.debug("BuiltIn 명령어 완료, 출력 버퍼 크기: ${currentOutputBuffer?.size() ?: 0}")
                 continue
             }
-            if (builtInResult == BuiltInCommandExecutionResult.EXIT) {
+            if (builtInResult == CommandExecutionResult.EXIT) {
                 return
             }
 
@@ -258,45 +257,5 @@ class ShellApplication(
             return
         }
         stdout.printText(message)
-    }
-
-    private fun executeShellCommand(processCommand: ProcessCommand): Boolean {
-        val path = pathFinder.findExecutable(processCommand.command)
-        if (path == null) {
-            println("${processCommand.command}: not found", processCommand.stdout)
-            return false
-        }
-        CustomLogger.debug("${processCommand.command} 명령어의 경로를 찾았습니다. $path")
-
-        val builder = ProcessBuilder(processCommand.command, *processCommand.args.toTypedArray())
-            // 있으면 실행한 현재 디렉토리가 아닌, 명령어를 찾은 디렉토리로 이동해서 실행함
-            // .directory(path.parent.toFile())
-            // 있으면, stdout 과 stderr 를 하나의 스트림으로 합침
-            .redirectErrorStream(false)
-
-        builder.environment()["PATH"] = path.parent.toString()
-
-        builder.applyRedirection(command = processCommand)
-
-        val process = builder.start()
-
-        // 프로세스 출력 → 우리 stream 으로 복사
-        // 테스트 때문에 PIPE + inputStream 조합을 사용. INHERIT 만 해도, 자바 프로세스 콘솔 출력에 같이 포함된다.
-        if (processCommand.stdout == null) {
-            process.inputStream.bufferedReader().forEachLine { line ->
-                CustomLogger.debug("프로세스 실행 출력 스트림: $line")
-                println(line, processCommand.stdout)
-            }
-        }
-
-        if (processCommand.stderr == null) {
-            process.errorStream.bufferedReader().forEachLine { line ->
-                CustomLogger.debug("프로세스 실행 에러 스트림: $line")
-                println(line, processCommand.stderr)
-            }
-        }
-
-        return process
-            .waitFor(1, TimeUnit.MINUTES)
     }
 }

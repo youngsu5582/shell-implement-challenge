@@ -4,7 +4,7 @@ import Constant.HOME_DIRECTORY_PROPERTY
 import Constant.USER_DIRECTORY_PROPERTY
 import Pipeline
 import ProcessCommand
-import shell.built.`in`.BuiltInCommandExecutionResult
+import shell.CommandExecutionResult
 import shell.built.`in`.ShellBuiltInCommandType
 import java.io.IOException
 import java.nio.file.Files
@@ -15,7 +15,7 @@ class Cd : BuiltInCommand {
         return ShellBuiltInCommandType.CD
     }
 
-    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): BuiltInCommandExecutionResult {
+    override fun execute(processCommand: ProcessCommand, pipeline: Pipeline): CommandExecutionResult {
         CustomLogger.debug("현재 디렉토리: ${System.getProperty(USER_DIRECTORY_PROPERTY)}")
         val currentDirectory = Paths.get(System.getProperty(USER_DIRECTORY_PROPERTY)).toAbsolutePath()
 
@@ -26,7 +26,7 @@ class Cd : BuiltInCommand {
                 USER_DIRECTORY_PROPERTY,
                 Paths.get(homeDirectory).toAbsolutePath().toString()
             )
-            return BuiltInCommandExecutionResult.BUILT_IN_EXECUTED
+            return CommandExecutionResult.BUILT_IN_EXECUTED
         }
 
         val toDirectory = currentDirectory.resolve(processCommand.argsToLine()).normalize()
@@ -39,6 +39,6 @@ class Cd : BuiltInCommand {
         } catch (e: IOException) {
             pipeline.writeError("${processCommand.formatToLine()} No such file or directory")
         }
-        return BuiltInCommandExecutionResult.BUILT_IN_EXECUTED
+        return CommandExecutionResult.BUILT_IN_EXECUTED
     }
 }
