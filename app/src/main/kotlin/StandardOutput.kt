@@ -12,10 +12,13 @@ data class StandardOutput(val path: String, val option: StandardOption) {
     fun openOutputStream(): OutputStream {
         val path = Paths.get(path.trim())
         return when (option) {
-            StandardOption.OVERWRITE -> Files.newOutputStream(path, StandardOpenOption.CREATE,
+            StandardOption.OVERWRITE -> Files.newOutputStream(
+                path, StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE
             )
-            StandardOption.APPEND -> Files.newOutputStream(path, StandardOpenOption.CREATE,
+
+            StandardOption.APPEND -> Files.newOutputStream(
+                path, StandardOpenOption.CREATE,
                 StandardOpenOption.APPEND, StandardOpenOption.WRITE
             )
         }

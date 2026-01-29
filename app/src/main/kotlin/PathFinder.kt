@@ -30,7 +30,11 @@ class PathFinder(
                 }
                 if (entry.name == to) return entry.toAbsolutePath()
             }
+        } catch (e: SecurityException) {
+            CustomLogger.error("권한 없음: ${e.message}")
+            return null
         } catch (e: Exception) {
+            CustomLogger.error("IO 오류: ${e.message}")
             return null
         }
         return null

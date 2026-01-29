@@ -1,9 +1,6 @@
 import java.io.OutputStream
 
-class CustomLogger(
-
-) {
-
+class CustomLogger {
     companion object {
         private var logLevel: LogLevel = LogLevel.DEBUG
         private var outputStream: OutputStream = System.out
@@ -29,7 +26,7 @@ class CustomLogger(
         }
 
         private fun printMessage(level: LogLevel, message: String) {
-            if (this.logLevel > level) {
+            if (!logLevel.shouldLog(level)) {
                 return
             }
 
@@ -48,5 +45,7 @@ enum class LogLevel(val level: Int) {
     NONE(0),
     DEBUG(1),
     INFO(2),
-    ERROR(3)
+    ERROR(3);
+
+    fun shouldLog(target: LogLevel) = level <= target.level
 }

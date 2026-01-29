@@ -1,3 +1,13 @@
+/**
+ * Shell 명령어를 토큰으로 분리해주는 객체
+ *
+ * 상태 머신 개념으로 동작
+ *
+ * - PROCESSING : 일반 텍스트 처리
+ * - IN_SINGLE_QUOTED : 작은 따옴표(') 내부, 이스케이프 처리 X
+ * - IN_DOUBLE_QUOTED : 쌍 따옴표(") 내부, 백슬래시(\) 이스케이프 지원
+ * - LITERAL : 다음 문자를 리터럴로 처리
+ */
 object ShellTokenizer {
 
     private enum class TokenizerStatus {
