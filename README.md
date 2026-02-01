@@ -31,6 +31,16 @@ POSIX 호환 Shell을 직접 구현하면서 Shell 명령어 파싱, REPL, Built
 - [x] Append stdout (`>>`, `1>>`)
 - [x] Append stderr (`2>>`)
 
+### Quoting
+
+- [x] Single quotes
+- [x] Double quotes
+- [x] Backslash outside quotes
+- [x] Backslash within single quotes
+- [x] Backslash within double quotes
+- [ ] Executing a quoted executable
+
+
 ## Tech Stack
 
 | Category | Technology |
@@ -66,6 +76,14 @@ POSIX 호환 Shell을 직접 구현하면서 Shell 명령어 파싱, REPL, Built
 | `>>`, `1>>` | stdout을 파일에 추가 |
 | `2>` | stderr를 파일로 덮어쓰기 |
 | `2>>` | stderr를 파일에 추가 |
+
+### Quoting
+
+| Quote Type | Description |
+|------------|-------------|
+| `'...'` | Single quotes - 모든 문자를 literal로 취급, escape 불가 |
+| `"..."` | Double quotes - `$`, `` ` ``, `\`, `"` 만 특수 처리, 나머지는 literal |
+| `\` | Backslash - 다음 문자를 literal로 취급 (quotes 밖에서) |
 
 ## Usage Examples
 
